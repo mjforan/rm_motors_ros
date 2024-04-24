@@ -27,13 +27,26 @@ add_library(
 ## COMPILE
 target_compile_features(gm6020_ros PUBLIC cxx_std_17)
 target_include_directories(gm6020_ros PUBLIC
-$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
+$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/gm6020_ros>
 $<INSTALL_INTERFACE:include/gm6020_ros>
 )
 ament_target_dependencies(
   gm6020_ros PUBLIC
   ${INCLUDE_DEPENDS}
 )
+
+include(FetchContent)
+FetchContent_Declare(
+    Corrosion
+    GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
+)
+# Set any global configuration variables such as `Rust_TOOLCHAIN` before this line!
+FetchContent_MakeAvailable(Corrosion)
+# Import targets defined in a package or workspace manifest `Cargo.toml` file
+corrosion_import_crate(MANIFEST_PATH gm6020_can/Cargo.toml PROFILE release)
+target_link_libraries(gm6020_ros PRIVATE gm6020_can)
+target_include_directories(gm6020_ros PRIVATE gm6020_can/include)
+
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -42,10 +55,10 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "GM6020_ROS_BUILDING_DLL")
 # Export hardware plugins
 pluginlib_export_plugin_description_file(hardware_interface gm6020_ros.xml)
 
-# install(
-#   DIRECTORY include/gm6020_ros/
-#   DESTINATION include/gm6020_ros/
-# )
+install(
+  DIRECTORY include/gm6020_ros/
+  DESTINATION include/gm6020_ros/
+)
 
 install(TARGETS gm6020_ros
   EXPORT export_gm6020_ros

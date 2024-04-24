@@ -2,7 +2,8 @@
 # ^ this can be removed when the `COPY --exclude` syntax reaches stable
 
 ARG ROS_DISTRO=rolling
-FROM ros:${ROS_DISTRO}-perception
+#FROM ros:${ROS_DISTRO}-base
+FROM ros:rolling-base-noble
 SHELL ["/bin/bash", "-c"]
 WORKDIR /colcon_ws
 ENTRYPOINT ["/colcon_entrypoint.sh"]
@@ -13,23 +14,15 @@ COPY ./colcon_entrypoint.sh /colcon_entrypoint.sh
 ENV DEBIAN_FRONTEND=noninteractive \
     RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-RUN apt update && \
-    rosdep update 
-
-RUN apt install -y ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
+RUN apt update && apt install -y nano curl ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
 
 # Rust
 ENV PATH=/root/.cargo/bin:$PATH
-RUN apt install -y git libclang-dev python3-pip curl && \
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-    cargo install cargo-ament-build && \
-    pip install git+https://github.com/colcon/colcon-cargo.git git+https://github.com/colcon/colcon-ros-cargo.git
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-RUN apt install -y nano
+COPY --parents ./*/package.xml ./src/
+RUN rosdep update && rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
 
-COPY --exclude=./*/src/ ./* ./src/
-RUN rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
-
-COPY ./* ./src/
+COPY ./ ./src/
 RUN . /ros_entrypoint.sh && \
     colcon build
