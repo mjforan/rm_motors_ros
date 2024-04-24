@@ -36,7 +36,7 @@ def generate_launch_description():
 
     robot_controllers = PathJoinSubstitution(
         [
-            FindPackageShare("gm6020_ros_example"),
+            FindPackageShare("gm6020_example"),
             "config",
             "gm6020_pid.yaml",
         ]

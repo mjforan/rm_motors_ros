@@ -1,3 +1,6 @@
 [submodule "src/gm6020_can"]
 	path = src/gm6020_can
 	url = git@github.com:mjforan/gm6020_can.git
+[submodule "gm6020_can/gm6020_can"]
+	path = gm6020_can/gm6020_can
+	url = git@github.com:mjforan/gm6020_can.git

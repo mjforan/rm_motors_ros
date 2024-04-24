@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(gm6020_ros_example)
+project(gm6020_example)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
