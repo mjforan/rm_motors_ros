@@ -3,3 +3,4 @@ Dockerfile
 LICENSE
 **/Cargo.lock
 .git*
+**/target

@@ -1,14 +1,13 @@
 # syntax=docker/dockerfile:1.7-labs
 # ^ this can be removed when the `COPY --exclude` syntax reaches stable
 
-ARG ROS_DISTRO=rolling
-#FROM ros:${ROS_DISTRO}-base
-FROM ros:rolling-base-noble
+ARG ROS_DISTRO=jazzy
+FROM ros:${ROS_DISTRO}-ros-base
 SHELL ["/bin/bash", "-c"]
 WORKDIR /colcon_ws
 ENTRYPOINT ["/colcon_entrypoint.sh"]
 CMD ["bash"]
-COPY ./defaults.yaml /root/.colcon/defaults.yaml
+COPY ./colcon-defaults.yaml /root/.colcon/defaults.yaml
 COPY ./colcon_entrypoint.sh /colcon_entrypoint.sh
 
 ENV DEBIAN_FRONTEND=noninteractive \
