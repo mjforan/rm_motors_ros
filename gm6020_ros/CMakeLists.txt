@@ -24,6 +24,8 @@ add_library(
   src/gm6020_ros.cpp
 )
 
+add_executable(gm6020_can_test src/gm6020_can_test.cpp)
+
 ## COMPILE
 target_compile_features(gm6020_ros PUBLIC cxx_std_17)
 target_include_directories(gm6020_ros PUBLIC
@@ -45,7 +47,9 @@ FetchContent_MakeAvailable(Corrosion)
 # Import targets defined in a package or workspace manifest `Cargo.toml` file
 corrosion_import_crate(MANIFEST_PATH gm6020_can/Cargo.toml PROFILE release)
 target_link_libraries(gm6020_ros PRIVATE gm6020_can)
+target_link_libraries(gm6020_can_test PRIVATE gm6020_can)
 target_include_directories(gm6020_ros PRIVATE gm6020_can/include)
+target_include_directories(gm6020_can_test PRIVATE gm6020_can/include)
 
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -60,13 +64,13 @@ install(
   DESTINATION include/gm6020_ros/
 )
 
+install(TARGETS gm6020_can_test DESTINATION lib/${PROJECT_NAME})
 install(TARGETS gm6020_ros
   EXPORT export_gm6020_ros
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
-
 
 ## TESTS
 if(BUILD_TESTING)
