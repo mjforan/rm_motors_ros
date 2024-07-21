@@ -5,7 +5,8 @@ ARG ROS_DISTRO=jazzy
 FROM ros:${ROS_DISTRO}-ros-base
 SHELL ["/bin/bash", "-c"]
 WORKDIR /colcon_ws
-ENTRYPOINT ["/colcon_entrypoint.sh"]
+#ENTRYPOINT ["/colcon_entrypoint.sh"]
+ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
 COPY ./colcon-defaults.yaml /root/.colcon/defaults.yaml
 COPY ./colcon_entrypoint.sh /colcon_entrypoint.sh
@@ -22,6 +23,6 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 COPY --parents ./*/package.xml ./src/
 RUN rosdep update && rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
 
-COPY ./ ./src/
-RUN . /ros_entrypoint.sh && \
-    colcon build
+#COPY ./ ./src/
+#RUN . /ros_entrypoint.sh && \
+#    colcon build

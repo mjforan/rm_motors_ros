@@ -21,7 +21,7 @@ endforeach()
 add_library(
   gm6020_ros
   SHARED
-  src/gm6020_ros.cpp
+  hardware/gm6020_ros.cpp
 )
 
 add_executable(gm6020_can_test src/gm6020_can_test.cpp)
