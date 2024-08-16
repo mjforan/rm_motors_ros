@@ -3,18 +3,32 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
-// export LD_LIBRARY_PATH=/home/$USER/phalanx/gm6020_ros/gm6020_ros/gm6020_can/target/release/:$LD_LIBRARY_PATH
-// pushd gm6020_can && cargo build --release ; popd && g++ src/gm6020_can_test.cpp -I gm6020_can/include/ -L gm6020_can/target/release/ -lgm6020_can -lpthread -o test && ./test
 
-const unsigned int RATE = 50; // Don't want it too high because CAN bus will run out of buffer
-const unsigned int PERIOD = 1.0/RATE;
-const unsigned int INC = 10;
-const int MAX = V_MAX * 10;
-const int ID = 1;
+//////
+// Basic C++ example showing how to use gm6020_can library. Corresponds to gm6020_can/examples/gm6020_can_test.rs
+//////
+/*
+export LD_LIBRARY_PATH=/colcon_ws/src/gm6020_ros/gm6020_can/target/release
+pushd gm6020_can && cargo build --release ; popd && g++ src/gm6020_can_test.cpp -I gm6020_can/include/ -L gm6020_can/target/release/ -lgm6020_can -lpthread -o test && ./test
+*/
+
+const unsigned int RATE = 100; // Should be above 100Hz. At slower rates the feedback values get weird and eventually the commands stop going out. Could be hardware-dependent.
+const unsigned int PERIOD = (1.0/RATE)*1000;
+const unsigned int INC = 10; // Time between commands
+const int MAX = V_MAX * 10;  // Need the 10x multiplier so we can easily increment in for loops (can't increment floats).
+const int ID = 1;            // Motor ID [1,7]
 int main() {
+    // Open SocketCAN device
     Gm6020Can * gmc = init("can0");
+    if (gmc == nullptr){
+        std::cerr<<"Unable to open specified SocketCAN device"<<std::endl;
+        return -1;
+    }
+
+    // Start another thread to collect feedback values
     run(gmc, PERIOD);
 
+    // Ramp up, ramp down, ramp up (negative), ramp down (negative)
     for (int voltage = 0; voltage <= MAX; voltage += 2) {
         cmd_single(gmc, CmdMode::Voltage, ID, voltage / 10.0);
         std::this_thread::sleep_for (std::chrono::milliseconds(INC));
@@ -31,6 +45,8 @@ int main() {
         cmd_single(gmc, CmdMode::Voltage, ID, voltage / 10.0);
         std::this_thread::sleep_for (std::chrono::milliseconds(INC));
     }
+
+    // Send constant voltage command and read out position feedback
     cmd_single(gmc, CmdMode::Voltage, ID, 1.0);
     while (true){
         std::this_thread::sleep_for (std::chrono::milliseconds(50));

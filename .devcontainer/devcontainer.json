@@ -27,4 +27,7 @@
 	"workspaceMount": "source=${localWorkspaceFolder},target=/colcon_ws/src/,type=bind",
 	"workspaceFolder": "/colcon_ws/src",
 	//"overrideCommand": false
+	"runArgs": [
+		"--network=host"
+	]
 }
