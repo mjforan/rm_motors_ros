@@ -1,4 +1,4 @@
-#include "gm6020_ros/gm6020_ros.hpp"
+#include "gm6020_ros/gm6020_ros.h"
 
 #include <chrono>
 #include <cmath>
@@ -11,7 +11,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-namespace ros2_control_demo_example_2
+namespace gm6020_hardware
 {
 hardware_interface::CallbackReturn Gm6020Hardware::on_init(const hardware_interface::HardwareInfo & info)
 {
@@ -124,7 +124,7 @@ hardware_interface::CallbackReturn Gm6020Hardware::on_activate(const rclcpp_life
       hw_commands_[i] = 0;
     }
   }
-  run(gmc, 1.0/50); // TODO store thread ID somehow
+  run(gmc, 1000.0/100); // TODO store thread ID somehow
 
   RCLCPP_INFO(rclcpp::get_logger("Gm6020Hardware"), "Successfully activated!");
 
