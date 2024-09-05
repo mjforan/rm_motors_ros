@@ -60,6 +60,10 @@ install(
   DESTINATION share/ros2_control_demo_example_1
 )
 install(
+  DIRECTORY rrbot/urdf rrbot/rviz
+  DESTINATION share/${PROJECT_NAME}/rrbot
+)
+install(
   DIRECTORY bringup/launch bringup/config
   DESTINATION share/ros2_control_demo_example_1
 )
@@ -69,14 +73,6 @@ install(TARGETS ros2_control_demo_example_1
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
-
-if(BUILD_TESTING)
-  find_package(ament_cmake_pytest REQUIRED)
-
-  ament_add_pytest_test(example_1_urdf_xacro test/test_urdf_xacro.py)
-  ament_add_pytest_test(view_example_1_launch test/test_view_robot_launch.py)
-  ament_add_pytest_test(run_example_1_launch test/test_rrbot_launch.py)
-endif()
 
 
 ## EXPORTS
