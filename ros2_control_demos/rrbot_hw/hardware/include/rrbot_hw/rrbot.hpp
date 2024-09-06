@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_CONTROL_DEMO_EXAMPLE_1__RRBOT_HPP_
-#define ROS2_CONTROL_DEMO_EXAMPLE_1__RRBOT_HPP_
+#ifndef RRBOT_HW__RRBOT_HPP_
+#define RRBOT_HW__RRBOT_HPP_
 
 #include <memory>
 #include <string>
@@ -27,7 +27,7 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-namespace ros2_control_demo_example_1
+namespace rrbot_hw
 {
 class RRBotSystemPositionOnlyHardware : public hardware_interface::SystemInterface
 {
@@ -62,6 +62,6 @@ private:
   std::vector<double> hw_states_;
 };
 
-}  // namespace ros2_control_demo_example_1
+}  // namespace rrbot_hw
 
-#endif  // ROS2_CONTROL_DEMO_EXAMPLE_1__RRBOT_HPP_
+#endif  // RRBOT_HW__RRBOT_HPP_

@@ -13,7 +13,7 @@ RUN apt-get update \
     apt-get autoremove -y -qq && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --parents ./**/package.xml /home/ros2_ws/src/ros2_control_demos
+COPY --parents ./**/package.xml /home/ros2_ws/src/
 
 RUN cd /home/ros2_ws/src \
     && rosdep update --rosdistro ${ROS_DISTRO}  \
@@ -25,7 +25,7 @@ RUN cd /home/ros2_ws/src \
     apt-get autoremove -y -qq && \
     rm -rf /var/lib/apt/lists/*
 
-COPY . /home/ros2_ws/src/ros2_control_demos
+COPY . /home/ros2_ws/src/
 
 RUN cd /home/ros2_ws/ \
   && . /opt/ros/${ROS_DISTRO}/setup.sh \
@@ -33,4 +33,4 @@ RUN cd /home/ros2_ws/ \
 
 COPY docker/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ros2 launch ros2_control_demo_example_1 rrbot.launch.py start_rviz:=false
+CMD ros2 launch rrbot_example rrbot.launch.py start_rviz:=false

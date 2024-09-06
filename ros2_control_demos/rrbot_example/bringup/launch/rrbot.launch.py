@@ -44,7 +44,7 @@ def generate_launch_description():
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare("ros2_control_demo_example_1"),
+                    FindPackageShare("rrbot_example"),
                     "urdf",
                     "rrbot.urdf.xacro",
                 ]
@@ -55,7 +55,7 @@ def generate_launch_description():
 
     robot_controllers = PathJoinSubstitution(
         [
-            FindPackageShare("ros2_control_demo_example_1"),
+            FindPackageShare("rrbot_example"),
             "config",
             "rrbot_controllers.yaml",
         ]
