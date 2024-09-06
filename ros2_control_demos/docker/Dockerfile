@@ -29,9 +29,8 @@ COPY . /home/ros2_ws/src/ros2_control_demos
 
 RUN cd /home/ros2_ws/ \
   && . /opt/ros/${ROS_DISTRO}/setup.sh \
-  && colcon build --merge-install --symlink-install
+  && colcon build --symlink-install
 
-COPY Dockerfile/entrypoint.sh /entrypoint.sh
+COPY docker/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-
 CMD ros2 launch ros2_control_demo_example_1 rrbot.launch.py start_rviz:=false
