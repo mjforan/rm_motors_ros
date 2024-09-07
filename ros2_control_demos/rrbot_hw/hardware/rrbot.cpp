@@ -124,7 +124,7 @@ hardware_interface::return_type RRBotSystemEffortOnlyHardware::read(
   for (uint i = 0; i < hw_states_[0].size(); i++)
   {
     // Simulate RRBot's movement
-    //hw_states_[4][i] = 27.0;                                                             // temperature
+    hw_states_[3][i] = 27.0;                                                             // temperature
     hw_states_[2][i] = hw_commands_[1][i];                                               // effort
     hw_states_[1][i] = hw_states_[1][i] + (hw_commands_[1][i]*0.5 - hw_states_[1][i])/2; // velocity
     hw_states_[0][i] = hw_states_[0][i] + hw_states_[1][i]*0.5;                          // position
