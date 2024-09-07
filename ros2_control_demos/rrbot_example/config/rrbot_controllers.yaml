@@ -8,16 +8,16 @@ controller_manager:
     joint_trajectory_position_controller:
       type: "joint_trajectory_controller/JointTrajectoryController"
 
-    forward_position_controller:
+    forward_effort_controller:
       type: forward_command_controller/ForwardCommandController
 
 
-forward_position_controller:
+forward_effort_controller:
   ros__parameters:
     type: forward_command_controller/ForwardCommandController
     joints:
       - joint1
-    interface_name: position
+    interface_name: effort
 
 
 joint_trajectory_position_controller:
@@ -26,9 +26,11 @@ joint_trajectory_position_controller:
     joints:
       - joint1
     command_interfaces:
-      - position
+      - effort
     state_interfaces:
       - position
+      - velocity
+      - effort
     action_monitor_rate: 20.0 # Defaults to 20
     open_loop_control: true
     allow_integration_in_goal_trajectories: true

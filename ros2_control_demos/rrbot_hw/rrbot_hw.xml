@@ -1,6 +1,6 @@
 <library path="rrbot_hw">
-  <class name="rrbot_hw/RRBotSystemPositionOnlyHardware"
-         type="rrbot_hw::RRBotSystemPositionOnlyHardware"
+  <class name="rrbot_hw/RRBotSystemEffortOnlyHardware"
+         type="rrbot_hw::RRBotSystemEffortOnlyHardware"
          base_class_type="hardware_interface::SystemInterface">
     <description>
       The ros2_control RRbot example using a system hardware interface-type.

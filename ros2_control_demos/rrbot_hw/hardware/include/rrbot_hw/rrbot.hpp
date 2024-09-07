@@ -29,10 +29,10 @@
 
 namespace rrbot_hw
 {
-class RRBotSystemPositionOnlyHardware : public hardware_interface::SystemInterface
+class RRBotSystemEffortOnlyHardware : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(RRBotSystemPositionOnlyHardware);
+  RCLCPP_SHARED_PTR_DEFINITIONS(RRBotSystemEffortOnlyHardware);
 
   hardware_interface::CallbackReturn on_init(
     const hardware_interface::HardwareInfo & info) override;
@@ -59,7 +59,10 @@ public:
 private:
   // Store the command for the simulated robot
   std::vector<double> hw_commands_;
-  std::vector<double> hw_states_;
+  std::vector<double> hw_states_position_;
+  std::vector<double> hw_states_velocity_;
+  std::vector<double> hw_states_effort_;
+
 };
 
 }  // namespace rrbot_hw
