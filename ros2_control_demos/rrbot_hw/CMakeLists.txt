@@ -16,9 +16,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp_lifecycle
 )
 
-# TODO remove version number
-# Specify the required version of ros2_control
-find_package(controller_manager 4.0.0)
+find_package(controller_manager REQUIRED)
 find_package(ament_cmake REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
