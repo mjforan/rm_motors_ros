@@ -8,15 +8,15 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update \
     && apt-get upgrade -y \
-    && \
+    && apt-get install -y ros-$ROS_DISTRO-rmw-cyclonedds-cpp && \
     : "remove cache" && \
     apt-get autoremove -y -qq && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --parents ./**/package.xml /home/ros2_ws/src/
+COPY --parents ./**/package.xml /rrbot_ws/src/
+WORKDIR /rrbot_ws
 
-RUN cd /home/ros2_ws/src \
-    && rosdep update --rosdistro ${ROS_DISTRO}  \
+RUN rosdep update --rosdistro ${ROS_DISTRO}  \
     && apt-get update \
     && rosdep install --from-paths ./ -i -y --rosdistro ${ROS_DISTRO} \
     --skip-keys ros-${ROS_DISTRO}-joint-state-publisher-gui --skip-keys ros-${ROS_DISTRO}-rviz2\
@@ -25,12 +25,12 @@ RUN cd /home/ros2_ws/src \
     apt-get autoremove -y -qq && \
     rm -rf /var/lib/apt/lists/*
 
-COPY . /home/ros2_ws/src/
+COPY . /rrbot_ws/src
 
-RUN cd /home/ros2_ws/ \
-  && . /opt/ros/${ROS_DISTRO}/setup.sh \
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh \
   && colcon build --symlink-install
 
 COPY docker/entrypoint.sh /entrypoint.sh
+WORKDIR /rrbot_ws
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ros2 launch rrbot_example rrbot.launch.py start_rviz:=false
