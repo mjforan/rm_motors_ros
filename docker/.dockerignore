@@ -1,0 +1,6 @@
+docker/Dockerfile
+docker/.dockerignore
+LICENSE
+**/Cargo.lock
+.git*
+**/target

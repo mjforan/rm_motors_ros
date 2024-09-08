@@ -1,9 +1,0 @@
-<library path="gm6020_ros">
-  <class name="gm6020_ros/Gm6020CanHardware"
-         type="gm6020_ros::Gm6020CanHardware"
-         base_class_type="hardware_interface::SystemInterface">
-    <description>
-      Hardware interface for RoboMaster GM6020 motor using CAN bus
-    </description>
-  </class>
-</library>

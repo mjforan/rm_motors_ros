@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- Revolute-Revolute Manipulator -->
+<!--
+Copied and modified from ROS1 example -
+https://github.com/ros-simulation/gazebo_ros_demos/blob/kinetic-devel/gm6020_description/urdf/gm6020.xacro
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="2dof_robot">
+  <xacro:arg name="prefix" default="" />
+
+  <!-- Import Gm6020 macro -->
+  <xacro:include filename="$(find gm6020_example)/urdf/gm6020_description.urdf.xacro" />
+
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find gm6020_example)/urdf/gm6020.materials.xacro" />
+
+  <!-- Import Gm6020 ros2_control description -->
+  <xacro:include filename="$(find gm6020_example)/urdf/gm6020.ros2_control.xacro" />
+
+  <!-- Used for fixing robot -->
+  <link name="world"/>
+
+  <xacro:gm6020 parent="world" prefix="$(arg prefix)">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:gm6020>
+
+  <xacro:gm6020_ros2_control
+    name="Gm6020" prefix="$(arg prefix)" />
+
+</robot>
