@@ -33,4 +33,4 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh \
 COPY docker/entrypoint.sh /entrypoint.sh
 WORKDIR /rrbot_ws
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ros2 launch rrbot_example rrbot.launch.py start_rviz:=false
+CMD ros2 launch rrbot_example rrbot.launch.py gui:=false
