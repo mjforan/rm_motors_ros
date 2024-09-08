@@ -24,6 +24,17 @@ hardware_interface::CallbackReturn RRBotSystemEffortOnlyHardware::on_init(const 
     v.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints){
+
+    try{
+      uint hw_id = stoi(joint.parameters.at("gm6020_id"));
+      RCLCPP_INFO(rclcpp::get_logger("RRBotSystemEffortOnlyHardware"), "got motor ID %u", hw_id);
+    }
+    catch (const std::out_of_range& e){
+      RCLCPP_FATAL(rclcpp::get_logger("RRBotSystemEffortOnlyHardware"),
+        "Joint %s missing parameter: gm6020_id", joint.name.c_str());
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
     if (joint.command_interfaces.size() != hw_commands_.size()){
       RCLCPP_FATAL(
         rclcpp::get_logger("RRBotSystemEffortOnlyHardware"),

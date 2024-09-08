@@ -58,6 +58,7 @@ private:
   std::vector<const char*> state_interface_types_ = {hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT, "temperature"};
   std::vector<std::vector<double>> hw_commands_;
   std::vector<std::vector<double>> hw_states_;
+  std::vector<uint> gm6020_ids_;
 };
 
 }  // namespace rrbot_hw

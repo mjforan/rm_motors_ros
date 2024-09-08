@@ -1,6 +1,6 @@
 TODO
-joint limits
-multiple joints - how to pass in motor ID?
+joint limits - pending updates to ros2_control
+
 remove rrbot references and convert to gm6020
 add param to toggle simulated operation
 tie in to actual gm6020 library
