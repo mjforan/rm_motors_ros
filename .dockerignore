@@ -1,0 +1,9 @@
+docker/Dockerfile
+.dockerignore
+LICENSE
+README.md
+80-can.link
+80-can.network
+**/Cargo.lock
+.git*
+**/target

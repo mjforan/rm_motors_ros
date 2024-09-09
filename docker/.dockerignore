@@ -1,7 +1,0 @@
-Dockerfile
-.dockerignore
-../LICENSE
-../README.md
-**/Cargo.lock
-../.git*
-**/target
