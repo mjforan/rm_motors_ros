@@ -1,6 +1,6 @@
 # gm6020_hw
 
-This is a hardware interface used to control DJI GM6020 motors over the CAN bus. It exposes `velocity` and `effort` command interfaces, with `position`, `velocity`, `effort`, and `temperature` state interfaces. Top level parameters are `can_interface` (e.g. "can0") and the boolean `simulate` for testing without a motor connected. Each joint must provide a `gm6020_id` parameter so the hardware interface knows which motor to use.
+This is a hardware interface wrapping the [`gm6020_can`](https://github.com/mjforan/gm6020_can) library, used to control DJI GM6020 motors over the CAN bus. It exposes `velocity` and `effort` command interfaces, with `position`, `velocity`, `effort`, and `temperature` state interfaces. Top level parameters are `can_interface` (e.g. "can0") and the boolean `simulate` for testing without a motor connected. Each joint must provide a `gm6020_id` parameter so the hardware interface knows which motor to use.
 
 For more information on ROS 2 Control hardware interfaces, check the [documentation](https://control.ros.org/rolling/doc/ros2_control/hardware_interface/doc/hardware_components_userdoc.html#) and [examples](https://github.com/ros-controls/ros2_control_demos).
 
@@ -94,6 +94,7 @@ A [Docker configuration](docker/Dockerfile) is provided for ease of setup and de
 ```
 git clone https://github.com/mjforan/gm6020_ros.git
 cd gm6020_ros
+git submodule update --init
 docker build . -t gm6020_ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
 docker run --rm -it --name gm6020_ros --net host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION gm6020_ros
 ```
