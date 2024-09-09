@@ -6,7 +6,7 @@
 		// Sets the run context to one level up instead of the .devcontainer folder.
 		"context": "..",
 		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-		"dockerfile": "../Dockerfile"
+		"dockerfile": "../docker/Dockerfile"
 	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
@@ -25,7 +25,7 @@
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "devcontainer"
 	"workspaceMount": "source=${localWorkspaceFolder},target=/colcon_ws/src/,type=bind",
-	"workspaceFolder": "/colcon_ws/src",
+	"workspaceFolder": "/colcon_ws",
 	//"overrideCommand": false
 	"runArgs": [
 		"--network=host"
