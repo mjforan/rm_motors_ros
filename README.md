@@ -11,7 +11,59 @@ This is a demonstration package which can drive gm6020 motors using a position t
 
 Big thanks to the authors of [ros2_control_demos](https://github.com/ros-controls/ros2_control_demos) for providing helpful starter code.
 
-TODO config / parameters
+
+# Important Files
+
+#### [gm6020_controllers.yaml](gm6020_example/config/gm6020_controllers.yaml)
+Controller details: joint names, command/state interfaces, PID gains.
+
+### [gm6020.launch.py](gm6020_example/launch/gm6020.launch.py)
+Launch `controller_manager`, `robot_state_publisher`, `joint_state_broadcaster`, spawn the controllers, and (optionally) start RViz.
+
+### [gm6020_description.urdf.xacro](urdf/gm6020_description.urdf.xacro)
+Physical configuration of the joints: pose, size, color, intertia, etc.
+
+### [gm6020.ros2_control.xacro](urdf/gm6020.ros2_control.xacro)
+Hardware interface description: command/state interfaces, limits (currently non-functional), parameters.
+
+
+# Build System
+
+The gm6020_can Rust library is built in the gm6020_ros CMakeLists.txt. [Corrosion](https://corrosion-rs.github.io/corrosion/) compiles the crate and creates a library target for `target_link_library`. The build process may seem to stall at 0% but that is normal- the output from `cargo build` is buffered and only displayed when the build completes.
+
+
+# Hardware Setup
+
+Out of the box the motor is configured with ID 0, which is invalid. Use the DIP switches to set the ID and enable the CAN termination resistor if necessary.
+
+This library requires a Linux SocketCAN interface. It was tested using a Raspberry Pi 5 and the [Waveshare CAN HAT](https://www.waveshare.com/wiki/2-CH_CAN_HAT). Quick start setup:
+
+```
+sudo su
+raspi-config # enable i2c and SPI
+cp 80-can.network /etc/systemd/network/80-can.network
+cp 80-can.link /etc/systemd/network/80-can.link
+systemctl enable systemd-networkd.service
+```
+
+
+# Software Setup
+Must have ROS 2 and Rust installed, with gm6020_hw and gm6020_example in a colcon workspace. The Docker image (see [below](#docker)) will do this for you.
+
+
+# Simple Functionality Check
+
+Example from gm6020_can Rust package (mostly) reimplemented in C++.
+```
+colcon build
+. install/setup.bash
+ros2 run gm6020_hw gm6020_can_test
+```
+
+
+# Full Stack Demo
+
+The hardware interface uses the low-level library to communicate to the motor. The trajectory controller commands the hardware interface to move through an arbitrary sequence of positions and velocities. RViz2 visualizes the system.
 
 ```
 ros2 launch gm6020_example gm6020.launch.py
@@ -27,37 +79,6 @@ ros2 topic pub /forward_effort_controller/commands std_msgs/msg/Float64MultiArra
 ```
 
 
-# Build System
-
-The gm6020_can Rust library is built in the gm6020_ros CMakeLists.txt using Corrosion. Corrosion will compile the crate and create a library target for `target_link_library`. The build process may seem to stall at 0% but that is normal- the output from `cargo build` is buffered and only displayed when the build completes.
-
-
-# Hardware
-
-Out of the box the motor is configured with ID 0, which is invalid. Use the DIP switches to set the ID and enable the CAN termination resistor if necessary.
-
-This library requires a Linux SocketCAN interface. It was tested using a Raspberry Pi 5 and the [Waveshare CAN HAT](https://www.waveshare.com/wiki/2-CH_CAN_HAT). Quick start setup:
-
-```
-sudo su
-raspi-config # enable i2c and SPI
-cp 80-can.network /etc/systemd/network/80-can.network
-cp 80-can.link /etc/systemd/network/80-can.link
-systemctl enable systemd-networkd.service
-```
-
-
-# Simple Functionality Check
-
-Example from gm6020_can Rust package (mostly) reimplemented in C++. Must have Rust installed and a colcon workspace configured. The Docker image (see [below](#docker)) will do this for you.
-
-```
-colcon build
-. install/setup.bash
-ros2 run gm6020_hw gm6020_can_test
-```
-
-
 # Software TODO
 - [ ] expose simulate parameter in launch file (and update example launch commands)
 - [ ] multithreading in gm6020_hw.cpp
@@ -69,7 +90,7 @@ ros2 run gm6020_hw gm6020_can_test
 
 # Docker
 
-A Docker configuration is provided for ease of testing and deployment.
+A [Docker configuration](docker/Dockerfile) is provided for ease of setup and deployment.
 
 ```
 git clone https://github.com/mjforan/gm6020_ros.git
