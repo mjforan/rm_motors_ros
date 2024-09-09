@@ -229,7 +229,7 @@ hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time &
       else
         ret = gm6020_can_cmd_single(gmc_, motor_ids_[i], CmdMode::Torque, hw_commands_[1][i]);
 
-      if(ret<0){ // TODO remove this when multithreading works
+      if(ret<0){
         RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_cmd_single");
         return hardware_interface::return_type::ERROR;
       }
