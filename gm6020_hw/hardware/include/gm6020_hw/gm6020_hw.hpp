@@ -2,6 +2,7 @@
 #define GM6020_HW__GM6020_HPP_
 
 #include <vector>
+#include <thread>
 
 #include <gm6020_can.h>
 
@@ -43,6 +44,7 @@ private:
   std::vector<std::vector<double>> hw_commands_;
   std::vector<std::vector<double>> hw_states_;
   std::vector<uint> motor_ids_;
+  std::thread run_thread_;
 };
 
 }  // namespace gm6020_hw

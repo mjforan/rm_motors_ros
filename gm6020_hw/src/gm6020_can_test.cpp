@@ -30,24 +30,24 @@ int main() {
 
     // Ramp up, ramp down, ramp up (negative), ramp down (negative)
     for (int voltage = 0; voltage <= MAX; voltage += 2) {
-        gm6020_can_cmd_single(gmc, CmdMode::Voltage, ID, voltage / 10.0);
+        gm6020_can_cmd_single(gmc, ID, CmdMode::Voltage, voltage / 10.0);
         std::this_thread::sleep_for (std::chrono::milliseconds(INC));
     }
     for (int voltage = MAX; voltage > 0; voltage -= 2) {
-        gm6020_can_cmd_single(gmc, CmdMode::Voltage, ID, voltage / 10.0);
+        gm6020_can_cmd_single(gmc, ID, CmdMode::Voltage, voltage / 10.0);
         std::this_thread::sleep_for (std::chrono::milliseconds(INC));
     }
     for (int voltage = 0; voltage >= -1*MAX; voltage -=2) {
-        gm6020_can_cmd_single(gmc, CmdMode::Voltage, ID, voltage / 10.0);
+        gm6020_can_cmd_single(gmc, ID, CmdMode::Voltage, voltage / 10.0);
         std::this_thread::sleep_for (std::chrono::milliseconds(INC));
     }
     for (int voltage = -1*MAX+1; voltage < 1; voltage += 2) {
-        gm6020_can_cmd_single(gmc, CmdMode::Voltage, ID, voltage / 10.0);
+        gm6020_can_cmd_single(gmc, ID, CmdMode::Voltage, voltage / 10.0);
         std::this_thread::sleep_for (std::chrono::milliseconds(INC));
     }
 
     // Send constant voltage command and read out position feedback
-    gm6020_can_cmd_single(gmc, CmdMode::Voltage, ID, 1.0);
+    gm6020_can_cmd_single(gmc, ID, CmdMode::Voltage, 1.0);
     while (true){
         std::this_thread::sleep_for (std::chrono::milliseconds(50));
         std::cout<<gm6020_can_get(gmc, ID, FbField::Position)<<std::endl;

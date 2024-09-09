@@ -1,5 +1,6 @@
 #include "gm6020_hw/gm6020_hw.hpp"
 #include <rclcpp/rclcpp.hpp>
+#include <algorithm>    // std::sort, std::adjacent_find
 
 namespace gm6020_hw
 {
@@ -9,21 +10,26 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
     return hardware_interface::CallbackReturn::ERROR;
 
   try{
-    can_interface_ = info_.hardware_parameters.at("can_interface").c_str();
-    RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "got CAN interface %s", can_interface_);
-  }
-  catch (const std::out_of_range& e){
-    RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
-      "Missing parameter: can_interface");
-    return hardware_interface::CallbackReturn::ERROR;
-  }
-  try{
     simulate_ = info_.hardware_parameters.at("simulate")=="true";
-    RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "got simulate %s", simulate_?"true":"false");
+    RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "got parameter simulate %s", simulate_?"true":"false");
   }
   catch (const std::out_of_range& e){
     RCLCPP_WARN(rclcpp::get_logger("Gm6020SystemHardware"),"Missing parameter: simulate. Assuming true");
     simulate_ = true;
+  }
+
+  if (simulate_)
+    can_interface_ = "simulated";
+  else {
+    try{
+      can_interface_ = info_.hardware_parameters.at("can_interface").c_str();
+      RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "got parameter CAN interface %s", can_interface_);
+    }
+    catch (const std::out_of_range& e){
+      RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
+        "Missing parameter: can_interface");
+      return hardware_interface::CallbackReturn::ERROR;
+    }
   }
   
   hw_commands_.resize(command_interface_types_.size());
@@ -37,8 +43,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
   for (const hardware_interface::ComponentInfo & joint : info_.joints){
 
     try{
-      uint hw_id = stoi(joint.parameters.at("gm6020_id"));
-      RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "got motor ID %u", hw_id);
+      motor_ids_.emplace_back(stoi(joint.parameters.at("gm6020_id")));
     }
     catch (const std::out_of_range& e){
       RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
@@ -81,13 +86,22 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
     }
   }
 
+  std::vector<uint> s = motor_ids_;
+  std::sort(s.begin(), s.end());
+  const std::vector<uint>::iterator duplicate = std::adjacent_find(s.begin(), s.end());
+  if (duplicate != s.end()){
+    RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
+        "Duplicate gm6020_id detected: %u. Each joint must have a unique ID.", *duplicate);
+      return hardware_interface::CallbackReturn::ERROR;
+  }
+
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(
-    rclcpp::get_logger("Gm6020SystemHardware"), "Configuring ...please wait...");
+  RCLCPP_DEBUG(
+    rclcpp::get_logger("Gm6020SystemHardware"), "configuring");
 
   // zero all states and commands
   for(std::vector<double>& v : hw_states_)
@@ -97,8 +111,16 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclc
     for(double & x : v)
       x = 0.0;
 
-  gmc_ = gm6020_can_init(can_interface_);
-  RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Successfully configured!");
+  if (!simulate_){
+    gmc_ = gm6020_can_init(can_interface_);
+    if (gmc_ == nullptr){
+      RCLCPP_FATAL(
+        rclcpp::get_logger("Gm6020SystemHardware"),
+        "unable to configure gm6020 CAN driver on interface '%s'", can_interface_);
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+  }
+  RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "configured gm6020 CAN driver on interface '%s'", can_interface_);
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -106,12 +128,11 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclc
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   //TODO release socket
-  RCLCPP_INFO(rclcpp::get_logger("Gm6020Hardware"), "Successfully cleaned up!");
+  RCLCPP_DEBUG(rclcpp::get_logger("Gm6020Hardware"), "cleaned up");
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface>
-Gm6020SystemHardware::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> Gm6020SystemHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (uint i = 0; i < info_.joints.size(); i++)
@@ -121,8 +142,7 @@ Gm6020SystemHardware::export_state_interfaces()
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface>
-Gm6020SystemHardware::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> Gm6020SystemHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
@@ -135,8 +155,9 @@ Gm6020SystemHardware::export_command_interfaces()
 
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
-//  gm6020_can_run(gmc_, 1000.0/100); // TODO store thread ID somehow
-  RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Successfully activated!");
+  //100Hz to ms
+  //run_thread_ = std::thread(gm6020_can_run(gmc_, 1.0/100.0*1000)); // TODO pass in atomic bool reference?
+  RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "activated 'run' loop");
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -144,7 +165,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcp
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   // TODO stop run() thread 
-  RCLCPP_INFO(rclcpp::get_logger("Gm6020Hardware"), "Successfully deactivated!");
+  RCLCPP_INFO(rclcpp::get_logger("Gm6020Hardware"), "deactivated");
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -152,10 +173,13 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_deactivate(const rcl
 hardware_interface::return_type Gm6020SystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Reading...");
-
-  if (!simulate_)
-    gm6020_can_run_once(gmc_);
+  RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "Reading...");
+  if (!simulate_){
+    if(gm6020_can_run_once(gmc_)<0){ // TODO remove this when multithreading works
+      RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_run_once");
+      return hardware_interface::return_type::ERROR;
+    }
+  }
   // Iterate through all joints
   for (uint i = 0; i < hw_states_[0].size(); i++)
   {
@@ -173,34 +197,52 @@ hardware_interface::return_type Gm6020SystemHardware::read(
     }
   }
   
-  RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Joints successfully read!");
+  RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "joints read");
 
   return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-
-
-
-  for (uint i = 0; i < hw_commands_[1].size(); i++)
+  for (uint i = 0; i < hw_commands_[0].size(); i++)
   {
-    if (simulate_){
-    // Simulate sending commands to the hardware
-    RCLCPP_INFO(
-      rclcpp::get_logger("Gm6020SystemHardware"), "Got command %.5f for joint %d!",
+    if(hw_commands_[0][i] != 0.0 && hw_commands_[1][i] != 0.0){
+        RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
+        "Joint %u was given two commands. Only one interface may be used at once.", i);
+      return hardware_interface::return_type::ERROR;
+    }
+
+    RCLCPP_DEBUG(
+      rclcpp::get_logger("Gm6020SystemHardware"), "writing speed command %.5f for joint %d",
+      hw_commands_[0][i], i);
+    RCLCPP_DEBUG(
+      rclcpp::get_logger("Gm6020SystemHardware"), "writing effort command %.5f for joint %d",
       hw_commands_[1][i], i);
+    if (simulate_){
+      ;
     }
     else {
-      // TODO switch to cmd_multiple to send all at once
-      // TODO only allow one command mode at a time
-      gm6020_can_cmd_single(gmc_, CmdMode::Voltage, motor_ids_[i], hw_commands_[0][i]);
+      // TODO is this function thread-safe? What if the run thread reads a command value halfway through writing?
+      int ret;
+      if (hw_commands_[0][i] != 0.0)
+        ret = gm6020_can_cmd_single(gmc_, motor_ids_[i], CmdMode::Velocity, hw_commands_[0][i]*RPM_PER_ANGULAR/RPM_PER_V);
+      else
+        ret = gm6020_can_cmd_single(gmc_, motor_ids_[i], CmdMode::Torque, hw_commands_[1][i]);
+
+      if(ret<0){ // TODO remove this when multithreading works
+        RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_cmd_single");
+        return hardware_interface::return_type::ERROR;
+      }
     }
   }
-  if(!simulate_) // TODO should this be handled in a separate thread for higher update rates? Does it matter if we aren't going to read at 1kHz?
-    gm6020_can_run_once(gmc_);
-  RCLCPP_INFO(
-    rclcpp::get_logger("Gm6020SystemHardware"), "Joints successfully written!");
+  if (!simulate_){
+    if(gm6020_can_run_once(gmc_)<0){ // TODO remove this when multithreading works
+      RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_run_once");
+      return hardware_interface::return_type::ERROR;
+    }
+  }
+
+  RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "joint commands written");
 
   return hardware_interface::return_type::OK;
 }

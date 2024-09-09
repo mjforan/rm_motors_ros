@@ -50,10 +50,18 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster"],
     )
 
+    # spawn the default joint controller
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_trajectory_position_controller", "forward_effort_controller", "--param-file", robot_controllers],
+        arguments=["joint_trajectory_position_controller", "--param-file", robot_controllers],
+    )
+
+    # spawn alternate controller but leave inactive
+    robot_controller_spawner_inactive = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["forward_effort_controller", "--inactive", "--param-file", robot_controllers],
     )
 
     rviz_node = Node(
@@ -70,6 +78,7 @@ def generate_launch_description():
         robot_state_pub_node,
         robot_controller_spawner,
         joint_state_broadcaster_spawner,
+        robot_controller_spawner_inactive,
         rviz_node,
     ]
 
