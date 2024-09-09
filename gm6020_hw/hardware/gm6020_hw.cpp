@@ -14,8 +14,8 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
     RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "got parameter simulate %s", simulate_?"true":"false");
   }
   catch (const std::out_of_range& e){
-    RCLCPP_WARN(rclcpp::get_logger("Gm6020SystemHardware"),"Missing parameter: simulate. Assuming true");
-    simulate_ = true;
+    RCLCPP_WARN(rclcpp::get_logger("Gm6020SystemHardware"),"Missing parameter: simulate. Assuming false");
+    simulate_ = false;
   }
 
   if (simulate_)
