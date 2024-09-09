@@ -14,7 +14,7 @@ Big thanks to the authors of [ros2_control_demos](https://github.com/ros-control
 
 # Important Files
 
-#### [gm6020_controllers.yaml](gm6020_example/config/gm6020_controllers.yaml)
+### [gm6020_controllers.yaml](gm6020_example/config/gm6020_controllers.yaml)
 Controller details: joint names, command/state interfaces, PID gains.
 
 ### [gm6020.launch.py](gm6020_example/launch/gm6020.launch.py)
