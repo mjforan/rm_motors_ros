@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <gm6020_can/gm6020_can.h>
+
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
@@ -12,11 +14,13 @@ namespace gm6020_hw
 class Gm6020SystemHardware : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(Gm6020SystemHardware);
+  RCLCPP_SHARED_PTR_DEFINITIONS(Gm6020SystemHardware)
 
   hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
   hardware_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+  
+  hardware_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
 
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
@@ -31,12 +35,14 @@ public:
   hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  
+  const char* can_interface_;
+  bool simulate_;
+  Gm6020Can *gmc_;
   std::vector<const char*> command_interface_types_ = {hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT};
   std::vector<const char*> state_interface_types_ = {hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT, "temperature"};
   std::vector<std::vector<double>> hw_commands_;
   std::vector<std::vector<double>> hw_states_;
-  std::vector<uint> gm6020_ids_;
+  std::vector<uint> motor_ids_;
 };
 
 }  // namespace gm6020_hw

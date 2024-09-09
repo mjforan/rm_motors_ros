@@ -1,6 +1,6 @@
-# GM6020-ROS
+# gm6020_hw
 
-This is a hardware interface used to control a single DJI GM6020 motor over the CAN bus. 
+This is a hardware interface used to control DJI GM6020 motors over the CAN bus.
 
 TODO control and feedback interfaces
 
@@ -10,7 +10,7 @@ TODO parameters
 ## Build System
 
 I originally tried to make the gm6020_can package build natively with colcon but the colcon rust plugins are unmaintained so I couldn't get it working.
-Instead it is built in the gm6020_ros CMakeLists.txt using Corrosion. This may seem to get stuck at 0% in the build process but that is normal.
+Instead it is built in the gm6020_ros CMakeLists.txt using Corrosion. This may seem to stall at 0% in the build process but that is normal.
 The output from `cargo build` is buffered and only displayed when the build completes.
 
 
@@ -32,21 +32,20 @@ cp 80-can.link /etc/systemd/network/80-can.link
 systemctl enable systemd-networkd.service
 ```
 
+## Simple functionality check
+
+Example from gm6020_can rust package, (mostly) reimplemented in C++
+
+```
+colcon build
+source install/setup.bash
+ros2 run gm6020_hw gm6020_can_test
+```
 
 
+# gm6020_example
 
-
-
-
-
-
-
-TODO
-joint limits - pending updates to ros2_control
-
-add param to toggle simulated operation
-tie in to actual gm6020 library
-implement controls in gm6020 library
+Demo package which can drive a gm6020 motor using a position trajectory controller or simple feed-forward controller.
 
 
 ```
@@ -67,3 +66,11 @@ To switch controllers while the system is running:
 ```
 ros2 service call /controller_manager/switch_controller controller_manager_msgs/srv/SwitchController '{activate_controllers: ["forward_effort_controller"], deactivate_controllers: ["joint_trajectory_position_controller"]}'
 ```
+
+
+## Software TODO
+fix colcon build - unable to find .h or .so files of gm6020_can even though they are present in the install folder. Added
+hacky workaround, manual gm6020_can.h in CMakeLists.txt, manual LIBRARY_PATH in Dockerfile.
+implement controls in gm6020 library
+
+joint limits - pending updates to ros2_control

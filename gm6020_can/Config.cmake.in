@@ -1,0 +1,4 @@
+@PACKAGE_INIT@
+
+include(${CMAKE_CURRENT_LIST_DIR}/gm6020_canTargetsCorrosion.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/gm6020_canTargets.cmake)

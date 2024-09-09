@@ -1,4 +1,4 @@
-#include "gm6020_hw/gm6020.hpp"
+#include "gm6020_hw/gm6020_hw.hpp"
 #include <rclcpp/rclcpp.hpp>
 
 namespace gm6020_hw
@@ -8,6 +8,24 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
   if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS)
     return hardware_interface::CallbackReturn::ERROR;
 
+  try{
+    can_interface_ = info_.hardware_parameters.at("can_interface").c_str();
+    RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "got CAN interface %s", can_interface_);
+  }
+  catch (const std::out_of_range& e){
+    RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
+      "Missing parameter: can_interface");
+    return hardware_interface::CallbackReturn::ERROR;
+  }
+  try{
+    simulate_ = info_.hardware_parameters.at("simulate")=="true";
+    RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "got simulate %s", simulate_?"true":"false");
+  }
+  catch (const std::out_of_range& e){
+    RCLCPP_WARN(rclcpp::get_logger("Gm6020SystemHardware"),"Missing parameter: simulate. Assuming true");
+    simulate_ = true;
+  }
+  
   hw_commands_.resize(command_interface_types_.size());
   for(std::vector<double>& v : hw_commands_)
     v.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
@@ -78,8 +96,17 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclc
   for(std::vector<double>& v : hw_commands_)
     for(double & x : v)
       x = 0.0;
+
+  gmc_ = gm6020_can_init(can_interface_);
   RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Successfully configured!");
 
+  return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+hardware_interface::CallbackReturn Gm6020SystemHardware::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/)
+{
+  //TODO release socket
+  RCLCPP_INFO(rclcpp::get_logger("Gm6020Hardware"), "Successfully cleaned up!");
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -108,6 +135,7 @@ Gm6020SystemHardware::export_command_interfaces()
 
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
+//  gm6020_can_run(gmc_, 1000.0/100); // TODO store thread ID somehow
   RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Successfully activated!");
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -115,6 +143,8 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcp
 
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
+  // TODO stop run() thread 
+  RCLCPP_INFO(rclcpp::get_logger("Gm6020Hardware"), "Successfully deactivated!");
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -122,19 +152,28 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_deactivate(const rcl
 hardware_interface::return_type Gm6020SystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  // BEGIN: This part here is for exemplary purposes - Please do not copy to your production code
   RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Reading...");
 
+  if (!simulate_)
+    gm6020_can_run_once(gmc_);
+  // Iterate through all joints
   for (uint i = 0; i < hw_states_[0].size(); i++)
   {
-    // Simulate Gm6020's movement
-    hw_states_[3][i] = 27.0;                                                             // temperature
-    hw_states_[2][i] = hw_commands_[1][i];                                               // effort
-    hw_states_[1][i] = hw_states_[1][i] + (hw_commands_[1][i]*0.5 - hw_states_[1][i])/2; // velocity
-    hw_states_[0][i] = hw_states_[0][i] + hw_states_[1][i]*0.5;                          // position
+    if (simulate_){    
+      hw_states_[3][i] = 27.0;                                                             // temperature
+      hw_states_[2][i] = hw_commands_[1][i];                                               // effort
+      hw_states_[1][i] = hw_states_[1][i] + (hw_commands_[1][i]*0.5 - hw_states_[1][i])/2; // velocity
+      hw_states_[0][i] = hw_states_[0][i] + hw_states_[1][i]*0.5;                          // position
+    }
+    else{
+      hw_states_[0][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Position);
+      hw_states_[1][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Velocity);
+      hw_states_[2][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Current) * N_PER_A;
+      hw_states_[3][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Temperature);
+    }
   }
+  
   RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Joints successfully read!");
-  // END: This part here is for exemplary purposes - Please do not copy to your production code
 
   return hardware_interface::return_type::OK;
 }
@@ -142,13 +181,24 @@ hardware_interface::return_type Gm6020SystemHardware::read(
 hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
 
+
+
   for (uint i = 0; i < hw_commands_[1].size(); i++)
   {
+    if (simulate_){
     // Simulate sending commands to the hardware
     RCLCPP_INFO(
       rclcpp::get_logger("Gm6020SystemHardware"), "Got command %.5f for joint %d!",
       hw_commands_[1][i], i);
+    }
+    else {
+      // TODO switch to cmd_multiple to send all at once
+      // TODO only allow one command mode at a time
+      gm6020_can_cmd_single(gmc_, CmdMode::Voltage, motor_ids_[i], hw_commands_[0][i]);
+    }
   }
+  if(!simulate_) // TODO should this be handled in a separate thread for higher update rates? Does it matter if we aren't going to read at 1kHz?
+    gm6020_can_run_once(gmc_);
   RCLCPP_INFO(
     rclcpp::get_logger("Gm6020SystemHardware"), "Joints successfully written!");
 

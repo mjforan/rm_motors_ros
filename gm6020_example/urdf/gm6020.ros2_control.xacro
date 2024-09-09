@@ -6,6 +6,8 @@
     <ros2_control name="${name}" type="system">
       <hardware>
         <plugin>gm6020_hw/Gm6020SystemHardware</plugin>
+        <param name="can_interface">can0</param>
+        <param name="simulate">true</param>
       </hardware>
 
       <joint name="${prefix}joint1">

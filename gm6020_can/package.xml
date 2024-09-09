@@ -1,20 +1,14 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>gm6020_hw</name>
+  <name>gm6020_can</name>
   <version>0.0.0</version>
-  <description>ros2_control hardware interface for DJI gm6020 motor</description>
+  <description>CAN bus interface for DJI gm6020 motor</description>
   <maintainer email="matthewjforan@gmail.com">Matthew Foran</maintainer>
 
   <license>MPL-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-
-  <depend>gm6020_can</depend>
-  <depend>hardware_interface</depend>
-  <depend>pluginlib</depend>
-  <depend>rclcpp</depend>
-  <depend>rclcpp_lifecycle</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

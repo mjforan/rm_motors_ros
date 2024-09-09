@@ -1,6 +1,7 @@
-docker/Dockerfile
-docker/.dockerignore
-LICENSE
+Dockerfile
+.dockerignore
+../LICENSE
+../README.md
 **/Cargo.lock
-.git*
+../.git*
 **/target
