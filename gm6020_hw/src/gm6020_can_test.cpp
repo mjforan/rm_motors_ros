@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <gm6020_can/gm6020_can.h>
+#include <gm6020_can.h>
 #include <thread>
 #include <chrono>
 #include <iostream>

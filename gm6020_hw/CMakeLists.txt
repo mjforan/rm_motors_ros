@@ -14,13 +14,26 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   pluginlib
   rclcpp
   rclcpp_lifecycle
-  gm6020_can
 )
 
 find_package(ament_cmake REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
+
+
+## Build Rust library
+
+include(FetchContent)
+FetchContent_Declare(
+    Corrosion
+    GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
+)
+# Set any global configuration variables such as `Rust_TOOLCHAIN` before this line!
+FetchContent_MakeAvailable(Corrosion)
+# Import targets defined in a package or workspace manifest `Cargo.toml` file
+corrosion_import_crate(MANIFEST_PATH gm6020_can/Cargo.toml PROFILE release)
+
 
 ## COMPILE
 add_library(
@@ -36,13 +49,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
 $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
-target_include_directories(gm6020_can_test PUBLIC
-$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
-$<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC gm6020_can)
-target_link_libraries(gm6020_can_test PUBLIC gm6020_can)
+target_include_directories(${PROJECT_NAME} PRIVATE gm6020_can/include)
+target_include_directories(gm6020_can_test PRIVATE gm6020_can/include)
+target_link_libraries(${PROJECT_NAME} PRIVATE gm6020_can)
+target_link_libraries(gm6020_can_test PRIVATE gm6020_can)
+
 
 ament_target_dependencies(
   ${PROJECT_NAME} PUBLIC

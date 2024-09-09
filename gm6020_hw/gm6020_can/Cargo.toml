@@ -19,7 +19,7 @@ cbindgen = "0.26.0"
 
 [lib]
 name = "gm6020_can"
-crate-type = ["cdylib", "lib"]
+crate-type = ["staticlib", "cdylib", "lib"]
 
 [[example]]
 name = "gm6020_can_test"

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <gm6020_can/gm6020_can.h>
+#include <gm6020_can.h>
 
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"

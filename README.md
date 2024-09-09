@@ -69,8 +69,8 @@ ros2 service call /controller_manager/switch_controller controller_manager_msgs/
 
 
 ## Software TODO
-fix colcon build - unable to find .h or .so files of gm6020_can even though they are present in the install folder. Added
-hacky workaround, manual gm6020_can.h in CMakeLists.txt, manual LIBRARY_PATH in Dockerfile.
 implement controls in gm6020 library
 
-joint limits - pending updates to ros2_control
+joint limits
+ - pending updates to ros2_control
+ - dynamic reconfigure?
