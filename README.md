@@ -20,10 +20,10 @@ Controller details: joint names, command/state interfaces, PID gains.
 ### [gm6020.launch.py](gm6020_example/launch/gm6020.launch.py)
 Launch `controller_manager`, `robot_state_publisher`, `joint_state_broadcaster`, spawn the controllers, and (optionally) start RViz.
 
-### [gm6020_description.urdf.xacro](urdf/gm6020_description.urdf.xacro)
+### [gm6020_description.urdf.xacro](gm6020_example/urdf/gm6020_description.urdf.xacro)
 Physical configuration of the joints: pose, size, color, intertia, etc.
 
-### [gm6020.ros2_control.xacro](urdf/gm6020.ros2_control.xacro)
+### [gm6020.ros2_control.xacro](gm6020_example/urdf/gm6020.ros2_control.xacro)
 Hardware interface description: command/state interfaces, limits (currently non-functional), parameters.
 
 
