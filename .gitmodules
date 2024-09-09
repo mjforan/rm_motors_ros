@@ -1,0 +1,3 @@
+[submodule "gm6020_hw/gm6020_can"]
+	path = gm6020_hw/gm6020_can
+	url = git@github.com:mjforan/gm6020_can.git
