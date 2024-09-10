@@ -43,7 +43,13 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
   for (const hardware_interface::ComponentInfo & joint : info_.joints){
 
     try{
-      motor_ids_.emplace_back(stoi(joint.parameters.at("gm6020_id")));
+      uint id = stoi(joint.parameters.at("gm6020_id"));
+      if (id < 1 || id > 7){
+        RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
+          "Joint %s gm6020_id out of range [1, 7]: %u", joint.name.c_str(), id);
+        return hardware_interface::CallbackReturn::ERROR;
+      }
+      motor_ids_.emplace_back(id);
     }
     catch (const std::out_of_range& e){
       RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
@@ -155,9 +161,10 @@ std::vector<hardware_interface::CommandInterface> Gm6020SystemHardware::export_c
 
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  //100Hz to ms
-  //run_thread_ = std::thread(gm6020_can_run(gmc_, 1.0/100.0*1000)); // TODO pass in atomic bool reference?
-  RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "activated 'run' loop");
+  if (!simulate_){
+    run_thread_ = std::thread(gm6020_can_run(gmc_, 1.0/100.0*1000)); //100Hz to ms // TODO pass in atomic bool reference?
+    RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "activated 'run' loop");
+  }
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -174,12 +181,6 @@ hardware_interface::return_type Gm6020SystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
   RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "Reading...");
-  if (!simulate_){
-    if(gm6020_can_run_once(gmc_)<0){ // TODO remove this when multithreading works
-      RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_run_once");
-      return hardware_interface::return_type::ERROR;
-    }
-  }
   // Iterate through all joints
   for (uint i = 0; i < hw_states_[0].size(); i++)
   {
@@ -233,12 +234,6 @@ hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time &
         RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_cmd_single");
         return hardware_interface::return_type::ERROR;
       }
-    }
-  }
-  if (!simulate_){
-    if(gm6020_can_run_once(gmc_)<0){ // TODO remove this when multithreading works
-      RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_run_once");
-      return hardware_interface::return_type::ERROR;
     }
   }
 
