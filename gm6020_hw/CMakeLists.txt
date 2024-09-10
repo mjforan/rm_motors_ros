@@ -69,7 +69,7 @@ install(
   DIRECTORY hardware/include/
   DESTINATION include/${PROJECT_NAME}
 )
-
+install(TARGETS gm6020_can_test DESTINATION bin)
 install(TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
