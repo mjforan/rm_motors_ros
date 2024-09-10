@@ -162,7 +162,7 @@ std::vector<hardware_interface::CommandInterface> Gm6020SystemHardware::export_c
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   if (!simulate_){
-    run_thread_ = std::thread(gm6020_can_run, gmc_, 1.0/100.0*1000); //100Hz to ms // TODO pass in atomic bool reference?
+    gm6020_can_run(gmc_, (1.0/100)*1000); //100Hz to ms // TODO pass in atomic bool reference?
     RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "activated 'run' loop");
   }
 
@@ -193,7 +193,7 @@ hardware_interface::return_type Gm6020SystemHardware::read(
     else{
       hw_states_[0][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Position);
       hw_states_[1][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Velocity);
-      hw_states_[2][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Current) * N_PER_A;
+      hw_states_[2][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Current)*NM_PER_A;
       hw_states_[3][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Temperature);
     }
   }
