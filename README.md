@@ -95,6 +95,6 @@ A [Docker configuration](docker/Dockerfile) is provided for ease of setup and de
 git clone https://github.com/mjforan/gm6020_ros.git
 cd gm6020_ros
 git submodule update --init
-docker build . -t gm6020_ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
-docker run --rm -it --name gm6020_ros --net host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION gm6020_ros
+docker build . -t mjforan/gm6020-ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
+docker run --rm -it --name gm6020_ros --network host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION mjforan/gm6020-ros
 ```

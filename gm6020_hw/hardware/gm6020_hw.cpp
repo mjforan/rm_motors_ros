@@ -31,7 +31,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
       return hardware_interface::CallbackReturn::ERROR;
     }
   }
-  
+
   hw_commands_.resize(command_interface_types_.size());
   for(std::vector<double>& v : hw_commands_)
     v.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
@@ -162,7 +162,7 @@ std::vector<hardware_interface::CommandInterface> Gm6020SystemHardware::export_c
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   if (!simulate_){
-    run_thread_ = std::thread(gm6020_can_run(gmc_, 1.0/100.0*1000)); //100Hz to ms // TODO pass in atomic bool reference?
+    run_thread_ = std::thread(gm6020_can_run, gmc_, 1.0/100.0*1000); //100Hz to ms // TODO pass in atomic bool reference?
     RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "activated 'run' loop");
   }
 
@@ -171,7 +171,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcp
 
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  // TODO stop run() thread 
+  // TODO stop run() thread
   RCLCPP_INFO(rclcpp::get_logger("Gm6020Hardware"), "deactivated");
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -184,7 +184,7 @@ hardware_interface::return_type Gm6020SystemHardware::read(
   // Iterate through all joints
   for (uint i = 0; i < hw_states_[0].size(); i++)
   {
-    if (simulate_){    
+    if (simulate_){
       hw_states_[3][i] = 27.0;                                                             // temperature
       hw_states_[2][i] = hw_commands_[1][i];                                               // effort
       hw_states_[1][i] = hw_states_[1][i] + (hw_commands_[1][i]*0.5 - hw_states_[1][i])/2; // velocity
@@ -197,7 +197,7 @@ hardware_interface::return_type Gm6020SystemHardware::read(
       hw_states_[3][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Temperature);
     }
   }
-  
+
   RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "joints read");
 
   return hardware_interface::return_type::OK;
