@@ -44,7 +44,18 @@ raspi-config # enable i2c and SPI
 cp 80-can.network /etc/systemd/network/80-can.network
 cp 80-can.link /etc/systemd/network/80-can.link
 systemctl enable systemd-networkd.service
+
+echo """
+dtparam=spi=on
+dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25
+dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=23
+dtoverlay=spi-bcm2835-overlay
+""">> /boot/firmware/config.txt
+reboot now
 ```
+
+For debugging, you may want to `sudo apt install can-utils`
+
 
 
 # Software Setup

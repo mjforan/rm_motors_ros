@@ -191,10 +191,10 @@ hardware_interface::return_type Gm6020SystemHardware::read(
       hw_states_[0][i] = hw_states_[0][i] + hw_states_[1][i]*0.5;                          // position
     }
     else{
-      hw_states_[0][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Position);
-      hw_states_[1][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Velocity);
-      hw_states_[2][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Current)*NM_PER_A;
-      hw_states_[3][i] = gm6020_can_get(gmc_, motor_ids_[i], FbField::Temperature);
+      hw_states_[0][i] = gm6020_can_get_state(gmc_, motor_ids_[i], FbField::Position);
+      hw_states_[1][i] = gm6020_can_get_state(gmc_, motor_ids_[i], FbField::Velocity);
+      hw_states_[2][i] = gm6020_can_get_state(gmc_, motor_ids_[i], FbField::Current)*NM_PER_A;
+      hw_states_[3][i] = gm6020_can_get_state(gmc_, motor_ids_[i], FbField::Temperature);
     }
   }
 
@@ -226,12 +226,12 @@ hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time &
       // TODO is this function thread-safe? What if the run thread reads a command value halfway through writing?
       int ret;
       if (hw_commands_[0][i] != 0.0)
-        ret = gm6020_can_cmd_single(gmc_, motor_ids_[i], CmdMode::Velocity, hw_commands_[0][i]*RPM_PER_ANGULAR/RPM_PER_V);
+        ret = gm6020_can_set_cmd(gmc_, motor_ids_[i], CmdMode::Velocity, hw_commands_[0][i]*RPM_PER_ANGULAR/RPM_PER_V);
       else
-        ret = gm6020_can_cmd_single(gmc_, motor_ids_[i], CmdMode::Torque, hw_commands_[1][i]);
+        ret = gm6020_can_set_cmd(gmc_, motor_ids_[i], CmdMode::Torque, hw_commands_[1][i]);
 
       if(ret<0){
-        RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_cmd_single");
+        RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_set_cmd");
         return hardware_interface::return_type::ERROR;
       }
     }
