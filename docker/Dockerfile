@@ -31,6 +31,10 @@ RUN rosdep update --rosdistro ${ROS_DISTRO} && apt update && \
     rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
 RUN apt-get autoremove -y -qq && rm -rf /var/lib/apt/lists/*
 
+#COPY --parents ./gm6020_hw/gm6020_can/ /colcon_ws/src/
+#RUN cd src/gm6020_hw/gm6020_can && cargo install cargo-expand && cargo build --release --examples
+RUN cargo install cargo-expand
+
 # Copy the code and build
 COPY ./gm6020_hw ./src/gm6020_hw
 COPY ./gm6020_example ./src/gm6020_example

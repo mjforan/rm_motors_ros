@@ -118,7 +118,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclc
       x = 0.0;
 
   if (!simulate_){
-    gmc_ = gm6020_can_init(can_interface_);
+    gmc_ = gm6020_can::init(can_interface_);
     if (gmc_ == nullptr){
       RCLCPP_FATAL(
         rclcpp::get_logger("Gm6020SystemHardware"),
@@ -162,8 +162,7 @@ std::vector<hardware_interface::CommandInterface> Gm6020SystemHardware::export_c
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   if (!simulate_){
-    gm6020_can_run(gmc_, (1.0/100)*1000); //100Hz to ms // TODO pass in atomic bool reference?
-    RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "activated 'run' loop");
+    RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "activated");
   }
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -171,7 +170,6 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_activate(const rclcp
 
 hardware_interface::CallbackReturn Gm6020SystemHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  // TODO stop run() thread
   RCLCPP_INFO(rclcpp::get_logger("Gm6020Hardware"), "deactivated");
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -181,6 +179,8 @@ hardware_interface::return_type Gm6020SystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
   RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "Reading...");
+  if (!simulate_)
+    gm6020_can::run_once(gmc_);
   // Iterate through all joints
   for (uint i = 0; i < hw_states_[0].size(); i++)
   {
@@ -191,10 +191,10 @@ hardware_interface::return_type Gm6020SystemHardware::read(
       hw_states_[0][i] = hw_states_[0][i] + hw_states_[1][i]*0.5;                          // position
     }
     else{
-      hw_states_[0][i] = gm6020_can_get_state(gmc_, motor_ids_[i], FbField::Position);
-      hw_states_[1][i] = gm6020_can_get_state(gmc_, motor_ids_[i], FbField::Velocity);
-      hw_states_[2][i] = gm6020_can_get_state(gmc_, motor_ids_[i], FbField::Current)*NM_PER_A;
-      hw_states_[3][i] = gm6020_can_get_state(gmc_, motor_ids_[i], FbField::Temperature);
+      hw_states_[0][i] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Position);
+      hw_states_[1][i] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Velocity);
+      hw_states_[2][i] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Current)*gm6020_can::NM_PER_A;
+      hw_states_[3][i] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Temperature);
     }
   }
 
@@ -223,19 +223,20 @@ hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time &
       ;
     }
     else {
-      // TODO is this function thread-safe? What if the run thread reads a command value halfway through writing?
       int ret;
       if (hw_commands_[0][i] != 0.0)
-        ret = gm6020_can_set_cmd(gmc_, motor_ids_[i], CmdMode::Velocity, hw_commands_[0][i]*RPM_PER_ANGULAR/RPM_PER_V);
+        ret = gm6020_can::set_cmd(gmc_, motor_ids_[i], gm6020_can::CmdMode::Velocity, hw_commands_[0][i]*gm6020_can::RPM_PER_ANGULAR/gm6020_can::RPM_PER_V);
       else
-        ret = gm6020_can_set_cmd(gmc_, motor_ids_[i], CmdMode::Torque, hw_commands_[1][i]);
+        ret = gm6020_can::set_cmd(gmc_, motor_ids_[i], gm6020_can::CmdMode::Torque, hw_commands_[1][i]);
 
       if(ret<0){
-        RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can_set_cmd");
+        RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can::set_cmd");
         return hardware_interface::return_type::ERROR;
       }
     }
   }
+  if (!simulate_)
+    gm6020_can::run_once(gmc_);
 
   RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "joint commands written");
 

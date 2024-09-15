@@ -38,7 +38,7 @@ public:
 private:
   const char* can_interface_;
   bool simulate_;
-  Gm6020Can *gmc_;
+  gm6020_can::Gm6020Can *gmc_;
   std::vector<const char*> command_interface_types_ = {hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT};
   std::vector<const char*> state_interface_types_ = {hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT, "temperature"};
   std::vector<std::vector<double>> hw_commands_;

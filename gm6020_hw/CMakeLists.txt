@@ -32,6 +32,7 @@ FetchContent_Declare(
 # Set any global configuration variables such as `Rust_TOOLCHAIN` before this line!
 FetchContent_MakeAvailable(Corrosion)
 # Import targets defined in a package or workspace manifest `Cargo.toml` file
+# TODO set release depending on colcon settings
 corrosion_import_crate(MANIFEST_PATH gm6020_can/Cargo.toml PROFILE release)
 
 
@@ -42,8 +43,6 @@ add_library(
   hardware/${PROJECT_NAME}.cpp
 )
 
-add_executable(gm6020_can_test src/gm6020_can_test.cpp)
-
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${PROJECT_NAME} PUBLIC
 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
@@ -51,9 +50,7 @@ $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE gm6020_can/include)
-target_include_directories(gm6020_can_test PRIVATE gm6020_can/include)
-target_link_libraries(${PROJECT_NAME} PRIVATE gm6020_can)
-target_link_libraries(gm6020_can_test PRIVATE gm6020_can)
+target_link_libraries(${PROJECT_NAME} PRIVATE gm6020_can_cpp)
 
 
 ament_target_dependencies(
@@ -69,8 +66,6 @@ install(
   DIRECTORY hardware/include/
   DESTINATION include/${PROJECT_NAME}
 )
-
-install(TARGETS gm6020_can_test DESTINATION lib/${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
