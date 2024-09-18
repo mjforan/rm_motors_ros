@@ -1,6 +1,7 @@
 #include "gm6020_hw/gm6020_hw.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <algorithm>    // std::sort, std::adjacent_find
+#include <math.h> // M_PI
 
 namespace gm6020_hw
 {
@@ -8,6 +9,12 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
 {
   if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS)
     return hardware_interface::CallbackReturn::ERROR;
+
+  if (info_.joints.size() == 0){
+    RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
+        "No joints found");
+      return hardware_interface::CallbackReturn::ERROR;
+  }
 
   try{
     simulate_ = info_.hardware_parameters.at("simulate")=="true";
@@ -32,15 +39,16 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
     }
   }
 
-  hw_commands_.resize(command_interface_types_.size());
+  hw_commands_.resize(info_.joints.size());
   for(std::vector<double>& v : hw_commands_)
-    v.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    v.resize(command_interface_types_.size(), std::numeric_limits<double>::quiet_NaN());
 
-  hw_states_.resize(state_interface_types_.size());
+  hw_states_.resize(info_.joints.size());
   for(std::vector<double>& v : hw_states_)
-    v.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    v.resize(state_interface_types_.size(), std::numeric_limits<double>::quiet_NaN());
 
-  for (const hardware_interface::ComponentInfo & joint : info_.joints){
+  for (int i=0; i<info_.joints.size(); i++){
+    const hardware_interface::ComponentInfo & joint = info_.joints[i];
 
     try{
       uint id = stoi(joint.parameters.at("gm6020_id"));
@@ -56,12 +64,26 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
         "Joint %s missing parameter: gm6020_id", joint.name.c_str());
       return hardware_interface::CallbackReturn::ERROR;
     }
+    try{
+      double pos_offset = stoi(joint.parameters.at("position_offset"));
+      if (pos_offset < -2.0*M_PI || pos_offset > 2.0*M_PI){
+        RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
+          "Joint %s position_offset out of range [-2π, 2π]: %f", joint.name.c_str(), pos_offset);
+        return hardware_interface::CallbackReturn::ERROR;
+      }
+      position_offsets_.emplace_back(pos_offset);
+    }
+    catch (const std::out_of_range& e){
+      RCLCPP_WARN(rclcpp::get_logger("Gm6020SystemHardware"),
+        "Joint %s missing parameter: position_offset. Assuming 0.0", joint.name.c_str());
+        position_offsets_.emplace_back(0.0);
+    }
 
-    if (joint.command_interfaces.size() != hw_commands_.size()){
+    if (joint.command_interfaces.size() != hw_commands_[i].size()){
       RCLCPP_FATAL(
         rclcpp::get_logger("Gm6020SystemHardware"),
         "Joint %s has %zu command interfaces. %zu expected.", joint.name.c_str(),
-        joint.command_interfaces.size(), hw_commands_.size());
+        joint.command_interfaces.size(), hw_commands_[i].size());
       return hardware_interface::CallbackReturn::ERROR;
     }
     for(uint j=0; j<command_interface_types_.size(); j++){
@@ -74,11 +96,11 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
       }
     }
 
-    if (joint.state_interfaces.size() != hw_states_.size()){
+    if (joint.state_interfaces.size() != hw_states_[i].size()){
       RCLCPP_FATAL(
         rclcpp::get_logger("Gm6020SystemHardware"),
         "Joint %s has %zu state interfaces. %zu expected.", joint.name.c_str(),
-        joint.state_interfaces.size(), hw_states_.size());
+        joint.state_interfaces.size(), hw_states_[i].size());
       return hardware_interface::CallbackReturn::ERROR;
     }
     for(uint j=0; j<state_interface_types_.size(); j++){
@@ -141,9 +163,9 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_cleanup(const rclcpp
 std::vector<hardware_interface::StateInterface> Gm6020SystemHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
-  for (uint i = 0; i < info_.joints.size(); i++)
-    for (uint j = 0; j < hw_states_.size(); j++)
-    state_interfaces.emplace_back(hardware_interface::StateInterface(info_.joints[i].name, state_interface_types_[j], &hw_states_[j][i]));
+  for (uint i = 0; i < hw_states_.size(); i++)
+    for (uint j = 0; j < hw_states_[i].size(); j++)
+      state_interfaces.emplace_back(hardware_interface::StateInterface(info_.joints[i].name, state_interface_types_[j], &hw_states_[i][j]));
 
   return state_interfaces;
 }
@@ -152,9 +174,9 @@ std::vector<hardware_interface::CommandInterface> Gm6020SystemHardware::export_c
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  for (uint i = 0; i < info_.joints.size(); i++)
-    for (uint j = 0; j < hw_commands_.size(); j++)
-    command_interfaces.emplace_back(hardware_interface::CommandInterface(info_.joints[i].name, command_interface_types_[j], &hw_commands_[j][i]));
+  for (uint i = 0; i < hw_commands_.size(); i++)
+    for (uint j = 0; j < hw_commands_[i].size(); j++)
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(info_.joints[i].name, command_interface_types_[j], &hw_commands_[i][j]));
 
   return command_interfaces;
 }
@@ -182,19 +204,19 @@ hardware_interface::return_type Gm6020SystemHardware::read(
   if (!simulate_)
     gm6020_can::run_once(gmc_);
   // Iterate through all joints
-  for (uint i = 0; i < hw_states_[0].size(); i++)
+  for (uint i = 0; i < hw_states_.size(); i++)
   {
     if (simulate_){
-      hw_states_[3][i] = 27.0;                                                             // temperature
-      hw_states_[2][i] = hw_commands_[1][i];                                               // effort
-      hw_states_[1][i] = hw_states_[1][i] + (hw_commands_[1][i]*0.5 - hw_states_[1][i])/2; // velocity
-      hw_states_[0][i] = hw_states_[0][i] + hw_states_[1][i]*0.5;                          // position
+      hw_states_[i][3] = 27.0;                                                             // temperature
+      hw_states_[i][2] = hw_commands_[i][1];                                               // effort
+      hw_states_[i][1] = hw_states_[i][1] + (hw_commands_[i][1]*0.5 - hw_states_[i][1])/2; // velocity
+      hw_states_[i][0] = hw_states_[i][0] + hw_states_[i][1]*0.5;                          // position
     }
     else{
-      hw_states_[0][i] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Position);
-      hw_states_[1][i] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Velocity);
-      hw_states_[2][i] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Current)*gm6020_can::NM_PER_A;
-      hw_states_[3][i] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Temperature);
+      hw_states_[i][0] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Position) + position_offsets_[i];
+      hw_states_[i][1] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Velocity);
+      hw_states_[i][2] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Current)*gm6020_can::NM_PER_A;
+      hw_states_[i][3] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Temperature);
     }
   }
 
@@ -205,9 +227,9 @@ hardware_interface::return_type Gm6020SystemHardware::read(
 
 hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  for (uint i = 0; i < hw_commands_[0].size(); i++)
+  for (uint i = 0; i < hw_commands_.size(); i++)
   {
-    if(hw_commands_[0][i] != 0.0 && hw_commands_[1][i] != 0.0){
+    if(hw_commands_[i][0] != 0.0 && hw_commands_[i][1] != 0.0){
         RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
         "Joint %u was given two commands. Only one interface may be used at once.", i);
       return hardware_interface::return_type::ERROR;
@@ -215,19 +237,19 @@ hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time &
 
     RCLCPP_DEBUG(
       rclcpp::get_logger("Gm6020SystemHardware"), "writing speed command %.5f for joint %d",
-      hw_commands_[0][i], i);
+      hw_commands_[i][0], i);
     RCLCPP_DEBUG(
       rclcpp::get_logger("Gm6020SystemHardware"), "writing effort command %.5f for joint %d",
-      hw_commands_[1][i], i);
+      hw_commands_[i][1], i);
     if (simulate_){
       ;
     }
     else {
       int ret;
-      if (hw_commands_[0][i] != 0.0)
-        ret = gm6020_can::set_cmd(gmc_, motor_ids_[i], gm6020_can::CmdMode::Velocity, hw_commands_[0][i]*gm6020_can::RPM_PER_ANGULAR/gm6020_can::RPM_PER_V);
+      if (hw_commands_[i][0] != 0.0)
+        ret = gm6020_can::set_cmd(gmc_, motor_ids_[i], gm6020_can::CmdMode::Velocity, hw_commands_[i][0]*gm6020_can::RPM_PER_ANGULAR/gm6020_can::RPM_PER_V);
       else
-        ret = gm6020_can::set_cmd(gmc_, motor_ids_[i], gm6020_can::CmdMode::Torque, hw_commands_[1][i]);
+        ret = gm6020_can::set_cmd(gmc_, motor_ids_[i], gm6020_can::CmdMode::Torque, hw_commands_[i][1]);
 
       if(ret<0){
         RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can::set_cmd");

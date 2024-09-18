@@ -4,7 +4,7 @@
 #include <vector>
 #include <thread>
 
-#include <gm6020_can.h>
+#include <gm6020_can.hpp>
 
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -44,7 +44,7 @@ private:
   std::vector<std::vector<double>> hw_commands_;
   std::vector<std::vector<double>> hw_states_;
   std::vector<uint> motor_ids_;
-  std::thread run_thread_;
+  std::vector<double> position_offsets_;
 };
 
 }  // namespace gm6020_hw

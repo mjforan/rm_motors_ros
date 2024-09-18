@@ -1,6 +1,25 @@
 # gm6020_hw
 
-This is a hardware interface wrapping the [`gm6020_can`](https://github.com/mjforan/gm6020_can) library, used to control DJI GM6020 motors over the CAN bus. It exposes `velocity` and `effort` command interfaces, with `position`, `velocity`, `effort`, and `temperature` state interfaces. Top level parameters are `can_interface` (e.g. "can0") and the boolean `simulate` for testing without a motor connected. Each joint must provide a `gm6020_id` parameter so the hardware interface knows which motor to use.
+This is a `ros2_control` hardware interface wrapping the [`gm6020_can`](https://github.com/mjforan/gm6020_can) library, used to control DJI GM6020 motors over the CAN bus.
+
+| Command Interfaces |
+|--------------------|
+| `velocity` |
+| `effort`   |
+
+| State Interfaces |
+|------------------|
+| `position`    |
+| `velocity`    |
+| `effort`      |
+| `temperature` |
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| `can_interface`         | true  | string  | Network interface to use e.g. "can0"    |
+| `simulate`              | false | boolean | For testing without a motor connected   |
+| `joint/gm6020_id`       | true  | integer | Which motor to use for this joint       |
+| `joint/position_offset` | false | double  | Offset the "zero" position of the motor |
 
 For more information on ROS 2 Control hardware interfaces, check the [documentation](https://control.ros.org/rolling/doc/ros2_control/hardware_interface/doc/hardware_components_userdoc.html#) and [examples](https://github.com/ros-controls/ros2_control_demos).
 
@@ -40,7 +59,7 @@ This library requires a Linux SocketCAN interface. It was tested using a Raspber
 
 ```
 sudo su
-raspi-config # enable i2c and SPI
+raspi-config # enable SPI
 cp 80-can.network /etc/systemd/network/80-can.network
 cp 80-can.link /etc/systemd/network/80-can.link
 systemctl enable systemd-networkd.service
@@ -53,23 +72,16 @@ dtoverlay=spi-bcm2835-overlay
 """>> /boot/firmware/config.txt
 reboot now
 ```
+TODO `NetworkManager` is installed by default but it does not support SocketCAN interfaces and it should not coexist with `systemd-networkd`.
 
-For debugging, you may want to `sudo apt install can-utils`
+For debugging, you may want to `sudo apt install -y can-utils`, which adds useful commands such as `candump` and `cansend`.
 
-
+Connect the red wire to the "H" pin on CAN0, with the black wire going to the "L" pin. If these are the only two hosts on the CAN bus, set the HAT jumper and motor DIP switch to enable the CAN termination resistors. Power the motor with 24VDC. The datasheet says it will draw 3A max but I have seen it hit almost 4A when overloaded.
 
 # Software Setup
-Must have ROS 2 and Rust installed, with `gm6020_hw` and `gm6020_example` in a colcon workspace. The Docker image (see [below](#docker)) will do this for you.
+Must have ROS 2 and Rust installed, with `gm6020_hw` and `gm6020_example` in a colcon workspace. Don't forget to install dependencies with rosdep. The [Docker image](#docker) will do all the setup for you.
 
-
-# Simple Functionality Check
-
-Example from `gm6020_can` Rust package (mostly) reimplemented in C++.
-```
-colcon build
-. install/setup.bash
-ros2 run gm6020_hw gm6020_can_test
-```
+The gm6020_can library has some [simple examples](gm6020_hw/gm6020_can/README.md#c-example) to try.
 
 
 # Full Stack Demo
@@ -88,14 +100,6 @@ ros2 service call /controller_manager/switch_controller controller_manager_msgs/
 # For feed-forward controller
 ros2 topic pub /forward_effort_controller/commands std_msgs/msg/Float64MultiArray "{layout:{dim: [], data_offset: 0}, data: [1.0]}" -1
 ```
-
-
-# Software TODO
-- [ ] multithreading in gm6020_hw.cpp
-- [ ] test on hardware
-- [ ] joint limits
-   - [ ] pending updates to ros2_control
-   - [ ] dynamic reconfigure?
 
 
 # Docker

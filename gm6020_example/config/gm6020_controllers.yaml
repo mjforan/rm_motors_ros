@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 10  # Hz
+    update_rate: 50  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -33,8 +33,8 @@ joint_trajectory_position_controller:
     allow_integration_in_goal_trajectories: true
     gains:
       joint1:
-        d: 0.0
+        d: 0.5
         ff_velocity_scale: 0.5
-        i: 0.0
-        i_clamp: 0.0
-        p: 3.0
+        i: 10.0
+        i_clamp: 10.0
+        p: 80.0
