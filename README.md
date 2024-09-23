@@ -2,17 +2,25 @@
 
 This is a `ros2_control` hardware interface wrapping the [`gm6020_can`](https://github.com/mjforan/gm6020_can) library, used to control DJI GM6020 motors over the CAN bus.
 
-| Command Interfaces |
+
+<table>
+<tr><td>
+
+| Command Interface |
 |--------------------|
 | `velocity` |
 | `effort`   |
 
-| State Interfaces |
+</td><td></td><td></td><td>
+
+| State Interface |
 |------------------|
 | `position`    |
 | `velocity`    |
 | `effort`      |
 | `temperature` |
+
+</td></tr></table>
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
@@ -78,10 +86,10 @@ TODO `NetworkManager` is installed by default but it does not support SocketCAN 
 
 For debugging, you may want to `sudo apt install -y can-utils`, which adds useful commands such as `candump` and `cansend`.
 
-Connect the red wire to the "H" pin on CAN0, with the black wire going to the "L" pin. If these are the only two hosts on the CAN bus, set the HAT jumper and motor DIP switch to enable the CAN termination resistors. Power the motor with 24VDC. The datasheet says it will draw 3A max but I have seen it hit almost 4A when overloaded.
+Connect the red wire to the "H" pin on CAN0, with the black wire going to the "L" pin. If these are the only two hosts on the CAN bus, set the HAT jumper and motor DIP switch to enable the CAN termination resistors. Power the motor with 24VDC 4A.
 
 # Software Setup
-Must have ROS 2 and Rust installed, with `gm6020_hw` and `gm6020_example` in a colcon workspace. Don't forget to install dependencies with rosdep. The [Docker image](#docker) will do all the setup for you.
+Must have ROS 2 and Rust installed, with `gm6020_hw` and `gm6020_example` in a colcon workspace. Don't forget to install dependencies with rosdep, and `cargo install cargo-expand`. The [Docker image](#docker) will do all the setup for you.
 
 The gm6020_can library has some [simple examples](gm6020_hw/gm6020_can/README.md#c-example) to try.
 
@@ -91,7 +99,9 @@ The gm6020_can library has some [simple examples](gm6020_hw/gm6020_can/README.md
 The hardware interface uses the low-level library to communicate to the motor. The trajectory controller commands the hardware interface to move through an arbitrary sequence of positions and velocities. RViz2 visualizes the system.
 
 ```
-ros2 launch gm6020_example gm6020.launch.py
+. install/setup.bash
+
+ros2 launch gm6020_example gm6020.launch.py &  # don't forget to kill this when you're done
 
 # For joint trajectory controller
 ros2 topic pub /joint_trajectory_position_controller/joint_trajectory trajectory_msgs/JointTrajectory "{joint_names: ["joint1"], points: [{positions:[1.0], velocities:[0.0], time_from_start: {sec: 3.0, nanosec: 0.0}}]}" -1
@@ -106,7 +116,7 @@ ros2 topic pub /forward_effort_controller/commands std_msgs/msg/Float64MultiArra
 
 # Docker
 
-A [Docker configuration](docker/Dockerfile) is provided for ease of setup and deployment.
+A [Docker configuration](docker/Dockerfile) is provided for ease of setup and deployment. There is also a dev container configuration for use with Visual Studio Code.
 
 ```
 git clone https://github.com/mjforan/gm6020_ros.git
