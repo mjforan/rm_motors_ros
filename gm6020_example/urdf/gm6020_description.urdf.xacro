@@ -5,9 +5,9 @@
 
   <!-- Constants for robot dimensions -->
   <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
-  <xacro:property name="diameter" value="0.667" />
-  <xacro:property name="height1" value="0.1" /> <!-- base link -->
-  <xacro:property name="height2" value="0.35" /> <!-- link 1 -->
+  <xacro:property name="diameter" value="0.0667" />
+  <xacro:property name="height1" value="0.01" /> <!-- base link -->
+  <xacro:property name="height2" value="0.035" /> <!-- link 1 -->
 
   <joint name="${prefix}base_joint" type="fixed">
     <xacro:insert_block name="origin" />
@@ -80,7 +80,7 @@
 
 
   <joint name="${prefix}marker_joint" type="fixed">
-    <origin xyz="${diameter/2-0.05} 0 ${height2+0.05/2}" rpy="0 0 0" />
+    <origin xyz="${0.3/2} 0 ${height2+0.01}" rpy="0 0 0" />
     <parent link="${prefix}link1"/>
     <child link="${prefix}marker_link" />
   </joint>
@@ -90,9 +90,9 @@
   <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.05" length="0.05"/>
+        <box size="0.3 0.02 0.02"/>
       </geometry>
-      <material name="orange"/>
+      <material name="blue"/>
     </visual>
   </link>
 

@@ -33,8 +33,17 @@ joint_trajectory_position_controller:
     allow_integration_in_goal_trajectories: true
     gains:
       joint1:
-        d: 0.5
-        ff_velocity_scale: 0.5
-        i: 10.0
-        i_clamp: 10.0
-        p: 80.0
+        # Do not assume these parameters will work for your use case.
+        # Be conservative and tune carefully to avoid damaging your robot.
+        # Example parameters for unloaded operation
+        d: 1.0
+        ff_velocity_scale: 0.0
+        i: 0.5
+        i_clamp: 2.0
+        p: 10.0
+        # Example parameters for loaded operation
+        #d: 10.0
+        #ff_velocity_scale: 0.0
+        #i: 50.0
+        #i_clamp: 80.0
+        #p: 120.0

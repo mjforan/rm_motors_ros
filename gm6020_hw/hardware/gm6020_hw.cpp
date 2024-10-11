@@ -47,7 +47,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
   for(std::vector<double>& v : hw_states_)
     v.resize(state_interface_types_.size(), std::numeric_limits<double>::quiet_NaN());
 
-  for (int i=0; i<info_.joints.size(); i++){
+  for (unsigned int i=0; i<info_.joints.size(); i++){
     const hardware_interface::ComponentInfo & joint = info_.joints[i];
 
     try{
@@ -65,7 +65,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
       return hardware_interface::CallbackReturn::ERROR;
     }
     try{
-      double pos_offset = stoi(joint.parameters.at("position_offset"));
+      double pos_offset = stod(joint.parameters.at("position_offset"));
       if (pos_offset < -2.0*M_PI || pos_offset > 2.0*M_PI){
         RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
           "Joint %s position_offset out of range [-2π, 2π]: %f", joint.name.c_str(), pos_offset);
@@ -214,6 +214,7 @@ hardware_interface::return_type Gm6020SystemHardware::read(
     }
     else{
       hw_states_[i][0] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Position) + position_offsets_[i];
+      hw_states_[i][0] -= 2*M_PI*(int)(hw_states_[i][0]/(2*M_PI)); // account for position_offset shifting the output range
       hw_states_[i][1] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Velocity);
       hw_states_[i][2] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Current)*gm6020_can::NM_PER_A;
       hw_states_[i][3] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Temperature);

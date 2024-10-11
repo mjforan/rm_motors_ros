@@ -104,7 +104,7 @@ The hardware interface uses the low-level library to communicate to the motor. T
 ros2 launch gm6020_example gm6020.launch.py &  # don't forget to kill this when you're done
 
 # For joint trajectory controller
-ros2 topic pub /joint_trajectory_position_controller/joint_trajectory trajectory_msgs/JointTrajectory "{joint_names: ["joint1"], points: [{positions:[1.0], velocities:[0.0], time_from_start: {sec: 3.0, nanosec: 0.0}}]}" -1
+ros2 topic pub /joint_trajectory_position_controller/joint_trajectory trajectory_msgs/JointTrajectory "{joint_names: ["joint1"], points: [{positions:[0.0], velocities:[0.0], time_from_start: {sec: 3, nanosec: 0}}]}" -1
 
 # To switch controllers while the system is running:
 ros2 service call /controller_manager/switch_controller controller_manager_msgs/srv/SwitchController '{deactivate_controllers: ["joint_trajectory_position_controller"], activate_controllers: ["forward_effort_controller"], strictness: 2}'
