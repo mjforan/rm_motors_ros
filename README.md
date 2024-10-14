@@ -88,6 +88,9 @@ For debugging, you may want to `sudo apt install -y can-utils`, which adds usefu
 
 Connect the red wire to the "H" pin on CAN0, with the black wire going to the "L" pin. If these are the only two hosts on the CAN bus, set the HAT jumper and motor DIP switch to enable the CAN termination resistors. Power the motor with 24VDC 4A.
 
+Beware that the motor reaches temperatures which can soften common 3d-printed materials.
+
+
 # Software Setup
 Must have ROS 2 and Rust installed, with `gm6020_hw` and `gm6020_example` in a colcon workspace. Don't forget to install dependencies with rosdep, and `cargo install cargo-expand`. The [Docker image](#docker) will do all the setup for you.
 
