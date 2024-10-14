@@ -91,7 +91,7 @@ Connect the red wire to the "H" pin on CAN0, with the black wire going to the "L
 # Software Setup
 Must have ROS 2 and Rust installed, with `gm6020_hw` and `gm6020_example` in a colcon workspace. Don't forget to install dependencies with rosdep, and `cargo install cargo-expand`. The [Docker image](#docker) will do all the setup for you.
 
-The gm6020_can library has some [simple examples](gm6020_hw/gm6020_can/README.md#c-example) to try.
+The gm6020_can library has some [simple examples]([gm6020_hw/gm6020_can/README.md](https://github.com/mjforan/gm6020_can/blob/main/README.md#c-example) to try.
 
 
 # Full Stack Demo
