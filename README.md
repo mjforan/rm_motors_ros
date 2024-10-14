@@ -1,5 +1,3 @@
-[![Demo Video](https://img.youtube.com/vi/UEskAxSjQE4/0.jpg)](https://www.youtube.com/watch?v=UEskAxSjQE4)
-
 # gm6020_hw
 
 This is a `ros2_control` hardware interface wrapping the [`gm6020_can`](https://github.com/mjforan/gm6020_can) library, used to control DJI GM6020 motors over the CAN bus.
@@ -97,6 +95,8 @@ The gm6020_can library has some [simple examples]([gm6020_hw/gm6020_can/README.m
 
 
 # Full Stack Demo
+
+[![Demo Video](https://img.youtube.com/vi/UEskAxSjQE4/0.jpg)](https://www.youtube.com/watch?v=UEskAxSjQE4)
 
 The hardware interface uses the low-level library to communicate to the motor. The trajectory controller commands the hardware interface to move through an arbitrary sequence of positions and velocities. RViz2 visualizes the system.
 
