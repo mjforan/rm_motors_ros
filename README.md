@@ -58,7 +58,7 @@ Hardware interface description: command/state interfaces, limits (currently non-
 
 # Build System
 
-The `gm6020_can` Rust library is built in the `gm6020_ros` CMakeLists.txt. [Corrosion](https://corrosion-rs.github.io/corrosion/) compiles the crate and creates a library target for `target_link_library`. The build process may seem to stall at 0% but that is normal- the output from `cargo build` is buffered and only displayed when the build completes.
+The `gm6020_can` Rust library is built in the `gm6020_ros` CMakeLists.txt. [Corrosion](https://corrosion-rs.github.io/corrosion/) compiles the crate and creates a library target for `target_link_library`. The build process may seem to stall at 0% but that is normal- the output from `cargo build` is buffered and only displayed when the build completes. TODO for unknown reasons the `gm6020_can` build takes a long time to complete.
 
 
 # Hardware Setup
