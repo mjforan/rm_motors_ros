@@ -2,7 +2,6 @@
 #define GM6020_HW__GM6020_HPP_
 
 #include <vector>
-#include <thread>
 
 #include <gm6020_can.hpp>
 
@@ -39,9 +38,10 @@ private:
   const char* can_interface_;
   bool simulate_;
   gm6020_can::Gm6020Can *gmc_;
-  std::vector<const char*> command_interface_types_ = {hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT};
   std::vector<const char*> state_interface_types_ = {hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT, "temperature"};
-  std::vector<std::vector<double>> hw_commands_;
+  std::vector<gm6020_can::MotorType> motor_types_;
+  std::vector<gm6020_can::CmdMode> command_modes_;
+  std::vector<double> hw_commands_;
   std::vector<std::vector<double>> hw_states_;
   std::vector<uint> motor_ids_;
   std::vector<double> position_offsets_;
