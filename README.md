@@ -22,14 +22,17 @@ This is a `ros2_control` hardware interface wrapping the [`gm6020_can`](https://
 
 </td></tr></table>
 
+Only one command interface may be designated for each motor. The interface type is linked to the motor mode {voltage: velocity, current: effort}.
+
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | `can_interface`         | true  | string  | Network interface to use e.g. "can0"    |
 | `simulate`              | false | boolean | For testing without a motor connected   |
 | `joint/gm6020_id`       | true  | integer | Which motor to use for this joint       |
+| `joint/motor_type`      | true  | string  | {"gm6020", "m3508", "m2006"}            |
 | `joint/position_offset` | false | double  | Offset the "zero" position of the motor |
 
-**Note** these parameters are set in [gm6020.ros2_control.xacro](gm6020_example/urdf/gm6020.ros2_control.xacro), not as regular ROS node parameters.
+These parameters are set in [gm6020.ros2_control.xacro](gm6020_example/urdf/gm6020.ros2_control.xacro), not as regular ROS node parameters.
 
 For more information on ROS 2 Control hardware interfaces, check the [documentation](https://control.ros.org/rolling/doc/ros2_control/hardware_interface/doc/hardware_components_userdoc.html#) and [examples](https://github.com/ros-controls/ros2_control_demos).
 

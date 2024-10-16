@@ -1,6 +1,7 @@
 #include "gm6020_hw/gm6020_hw.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <algorithm>    // std::sort, std::adjacent_find
+#include <map>
 #include <math.h> // M_PI
 
 namespace gm6020_hw
@@ -40,8 +41,6 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
   }
 
   hw_commands_.resize(info_.joints.size());
-  for(std::vector<double>& v : hw_commands_)
-    v.resize(command_interface_types_.size(), std::numeric_limits<double>::quiet_NaN());
 
   hw_states_.resize(info_.joints.size());
   for(std::vector<double>& v : hw_states_)
@@ -65,6 +64,18 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
       return hardware_interface::CallbackReturn::ERROR;
     }
     try{
+      std::map<std::string, gm6020_can::MotorType> type_map{
+        {"gm6020", gm6020_can::MotorType::GM6020},
+        {"m3508",  gm6020_can::MotorType::M3508},
+        {"m2006",  gm6020_can::MotorType::M2006}};
+      motor_types_.emplace_back(type_map.at(joint.parameters.at("motor_type")));
+    }
+    catch (const std::out_of_range& e){
+      RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
+        "Joint %s missing or incorrect parameter: motor_type. Options are \"gm6020\", \"m3508\", \"m2006\".", joint.name.c_str());
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+    try{
       double pos_offset = stod(joint.parameters.at("position_offset"));
       if (pos_offset < -2.0*M_PI || pos_offset > 2.0*M_PI){
         RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
@@ -79,21 +90,26 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
         position_offsets_.emplace_back(0.0);
     }
 
-    if (joint.command_interfaces.size() != hw_commands_[i].size()){
+    if (joint.command_interfaces.size() != 1){
       RCLCPP_FATAL(
         rclcpp::get_logger("Gm6020SystemHardware"),
-        "Joint %s has %zu command interfaces. %zu expected.", joint.name.c_str(),
-        joint.command_interfaces.size(), hw_commands_[i].size());
+        "Joint %s has %zu command interfaces. 1 expected.", joint.name.c_str(),
+        joint.command_interfaces.size());
       return hardware_interface::CallbackReturn::ERROR;
     }
-    for(uint j=0; j<command_interface_types_.size(); j++){
-      if (joint.command_interfaces[j].name != command_interface_types_[j]){
-        RCLCPP_FATAL(
-          rclcpp::get_logger("Gm6020SystemHardware"),
-          "Joint %s's #%u command interface is, %s. '%s' expected.", joint.name.c_str(),
-          j, joint.command_interfaces[j].name.c_str(), command_interface_types_[j]);
-        return hardware_interface::CallbackReturn::ERROR;
-      }
+    std::map<std::string, gm6020_can::CmdMode> cmd_mode_map {
+      {hardware_interface::HW_IF_VELOCITY, gm6020_can::CmdMode::Velocity},
+      {hardware_interface::HW_IF_EFFORT,   gm6020_can::CmdMode::Torque}
+    };
+    try{
+      command_modes_.emplace_back(cmd_mode_map.at(joint.command_interfaces[0].name));
+    }
+    catch (const std::out_of_range& e){
+       RCLCPP_FATAL(
+        rclcpp::get_logger("Gm6020SystemHardware"),
+        "Joint %s has an invalid command interface: %s. Options are \"velocity\", \"effort\".", joint.name.c_str(),
+        joint.command_interfaces[0].name.c_str());
+      return hardware_interface::CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces.size() != hw_states_[i].size()){
@@ -122,6 +138,17 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
         "Duplicate gm6020_id detected: %u. Each joint must have a unique ID.", *duplicate);
       return hardware_interface::CallbackReturn::ERROR;
   }
+  for (size_t i=0; i<motor_ids_.size(); i++){
+    if (gm6020_can::init_motor(gmc_, motor_ids_[i], motor_types_[i], command_modes_[i]) < 0){
+      RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"), "Unable to initialize motor: %u.", motor_ids_[i]);
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+    else{
+      RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Initialized motor %s:%u in %s mode.",
+        info_.joints[i].parameters.at("motor_type").c_str(), motor_ids_[i], info_.joints[i].command_interfaces[0].name.c_str());
+    }
+  }
+
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -135,12 +162,11 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclc
   for(std::vector<double>& v : hw_states_)
     for(double & x : v)
       x = 0.0;
-  for(std::vector<double>& v : hw_commands_)
-    for(double & x : v)
-      x = 0.0;
+  for(double& x : hw_commands_)
+    x = 0.0;
 
   if (!simulate_){
-    gmc_ = gm6020_can::init(can_interface_);
+    gmc_ = gm6020_can::init_bus(can_interface_);
     if (gmc_ == nullptr){
       RCLCPP_FATAL(
         rclcpp::get_logger("Gm6020SystemHardware"),
@@ -175,8 +201,7 @@ std::vector<hardware_interface::CommandInterface> Gm6020SystemHardware::export_c
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   for (uint i = 0; i < hw_commands_.size(); i++)
-    for (uint j = 0; j < hw_commands_[i].size(); j++)
-    command_interfaces.emplace_back(hardware_interface::CommandInterface(info_.joints[i].name, command_interface_types_[j], &hw_commands_[i][j]));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(info_.joints[i].name, info_.joints[i].command_interfaces[0].name, &hw_commands_[i]));
 
   return command_interfaces;
 }
@@ -208,15 +233,15 @@ hardware_interface::return_type Gm6020SystemHardware::read(
   {
     if (simulate_){
       hw_states_[i][3] = 27.0;                                                             // temperature
-      hw_states_[i][2] = hw_commands_[i][1];                                               // effort
-      hw_states_[i][1] = hw_states_[i][1] + (hw_commands_[i][1]*0.5 - hw_states_[i][1])/2; // velocity
+      hw_states_[i][2] = hw_commands_[i];                                                  // effort
+      hw_states_[i][1] = hw_states_[i][1] + (hw_commands_[i]*0.5 - hw_states_[i][1])/2;    // velocity
       hw_states_[i][0] = hw_states_[i][0] + hw_states_[i][1]*0.5;                          // position
     }
     else{
       hw_states_[i][0] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Position) + position_offsets_[i];
       hw_states_[i][0] -= 2*M_PI*(int)(hw_states_[i][0]/(2*M_PI)); // account for position_offset shifting the output range
       hw_states_[i][1] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Velocity);
-      hw_states_[i][2] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Current)*gm6020_can::NM_PER_A;
+      hw_states_[i][2] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Current)*gm6020_can::nm_per_a(motor_types_[i]);
       hw_states_[i][3] = gm6020_can::get_state(gmc_, motor_ids_[i], gm6020_can::FbField::Temperature);
     }
   }
@@ -230,29 +255,13 @@ hardware_interface::return_type Gm6020SystemHardware::write(const rclcpp::Time &
 {
   for (uint i = 0; i < hw_commands_.size(); i++)
   {
-    if(hw_commands_[i][0] != 0.0 && hw_commands_[i][1] != 0.0){
-        RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"),
-        "Joint %u was given two commands. Only one interface may be used at once.", i);
-      return hardware_interface::return_type::ERROR;
-    }
+    RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "writing command %.5f for joint %d", hw_commands_[i], i);
 
-    RCLCPP_DEBUG(
-      rclcpp::get_logger("Gm6020SystemHardware"), "writing speed command %.5f for joint %d",
-      hw_commands_[i][0], i);
-    RCLCPP_DEBUG(
-      rclcpp::get_logger("Gm6020SystemHardware"), "writing effort command %.5f for joint %d",
-      hw_commands_[i][1], i);
     if (simulate_){
       ;
     }
     else {
-      int ret;
-      if (hw_commands_[i][0] != 0.0)
-        ret = gm6020_can::set_cmd(gmc_, motor_ids_[i], gm6020_can::CmdMode::Velocity, hw_commands_[i][0]*gm6020_can::RPM_PER_ANGULAR/gm6020_can::RPM_PER_V);
-      else
-        ret = gm6020_can::set_cmd(gmc_, motor_ids_[i], gm6020_can::CmdMode::Torque, hw_commands_[i][1]);
-
-      if(ret<0){
+      if(gm6020_can::set_cmd(gmc_, motor_ids_[i], hw_commands_[i]) < 0){
         RCLCPP_ERROR(rclcpp::get_logger("Gm6020SystemHardware"), "Error in gm6020_can::set_cmd");
         return hardware_interface::return_type::ERROR;
       }
