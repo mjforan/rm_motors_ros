@@ -161,6 +161,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclc
         "unable to configure gm6020 CAN driver on interface '%s'", can_interface_);
       return hardware_interface::CallbackReturn::ERROR;
     }
+    RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Initialized gm6020 CAN driver on interface '%s'", can_interface_);
     for (size_t i=0; i<motor_ids_.size(); i++){
       if (gm6020_can::init_motor(gmc_, motor_ids_[i], motor_types_[i], command_modes_[i]) < 0){
         RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"), "Unable to initialize motor: %u.", motor_ids_[i]);
@@ -172,8 +173,7 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclc
       }
     }
   }
-  RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "configured gm6020 CAN driver on interface '%s'", can_interface_);
-
+  RCLCPP_DEBUG(rclcpp::get_logger("Gm6020SystemHardware"), "Configured");
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
