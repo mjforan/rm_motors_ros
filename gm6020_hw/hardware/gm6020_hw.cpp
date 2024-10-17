@@ -138,17 +138,6 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_init(const hardware_
         "Duplicate gm6020_id detected: %u. Each joint must have a unique ID.", *duplicate);
       return hardware_interface::CallbackReturn::ERROR;
   }
-  for (size_t i=0; i<motor_ids_.size(); i++){
-    if (gm6020_can::init_motor(gmc_, motor_ids_[i], motor_types_[i], command_modes_[i]) < 0){
-      RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"), "Unable to initialize motor: %u.", motor_ids_[i]);
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-    else{
-      RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Initialized motor %s:%u in %s mode.",
-        info_.joints[i].parameters.at("motor_type").c_str(), motor_ids_[i], info_.joints[i].command_interfaces[0].name.c_str());
-    }
-  }
-
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -166,12 +155,21 @@ hardware_interface::CallbackReturn Gm6020SystemHardware::on_configure(const rclc
     x = 0.0;
 
   if (!simulate_){
-    gmc_ = gm6020_can::init_bus(can_interface_);
-    if (gmc_ == nullptr){
+    if (!(gmc_ = gm6020_can::init_bus(can_interface_))){
       RCLCPP_FATAL(
         rclcpp::get_logger("Gm6020SystemHardware"),
         "unable to configure gm6020 CAN driver on interface '%s'", can_interface_);
       return hardware_interface::CallbackReturn::ERROR;
+    }
+    for (size_t i=0; i<motor_ids_.size(); i++){
+      if (gm6020_can::init_motor(gmc_, motor_ids_[i], motor_types_[i], command_modes_[i]) < 0){
+        RCLCPP_FATAL(rclcpp::get_logger("Gm6020SystemHardware"), "Unable to initialize motor: %u.", motor_ids_[i]);
+        return hardware_interface::CallbackReturn::ERROR;
+      }
+      else{
+        RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "Initialized motor %s:%u in %s mode.",
+          info_.joints[i].parameters.at("motor_type").c_str(), motor_ids_[i], info_.joints[i].command_interfaces[0].name.c_str());
+      }
     }
   }
   RCLCPP_INFO(rclcpp::get_logger("Gm6020SystemHardware"), "configured gm6020 CAN driver on interface '%s'", can_interface_);
