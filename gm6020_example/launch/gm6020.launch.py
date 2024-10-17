@@ -11,12 +11,12 @@ def generate_launch_description():
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
-            "gui",
+            "rviz",
             default_value="true",
             description="Start RViz2 automatically with this launch file.",
         )
     )
-    gui = LaunchConfiguration("gui")
+    rviz = LaunchConfiguration("rviz")
     rviz_config_file = PathJoinSubstitution([FindPackageShare("gm6020_example"), "config", "gm6020.rviz"])
 
     robot_description_content = Command(
@@ -70,7 +70,7 @@ def generate_launch_description():
         name="rviz2",
         output="log",
         arguments=["-d", rviz_config_file],
-        condition=IfCondition(gui),
+        condition=IfCondition(rviz),
     )
 
     nodes = [

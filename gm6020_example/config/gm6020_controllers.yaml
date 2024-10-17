@@ -36,11 +36,11 @@ joint_trajectory_position_controller:
         # Do not assume these parameters will work for your use case.
         # Be conservative and tune carefully to avoid damaging your robot.
         # Example parameters for unloaded operation
-        d: 1.0
+        d: 0.5
         ff_velocity_scale: 0.0
         i: 0.5
         i_clamp: 2.0
-        p: 10.0
+        p: 8.0
         # Example parameters for loaded operation
         #d: 10.0
         #ff_velocity_scale: 0.0
