@@ -1,6 +1,6 @@
-# gm6020_hw
+# rm_motors_hw
 
-This is a `ros2_control` hardware interface wrapping the [`gm6020_can`](https://github.com/mjforan/gm6020_can) library, used to control DJI GM6020 motors over the CAN bus.
+This is a `ros2_control` hardware interface wrapping the [`rm_motors_can`](https://github.com/mjforan/rm_motors_can) library, used to control DJI RoboMaster motors over the CAN bus.
 
 
 <table>
@@ -28,40 +28,40 @@ Only one command interface may be designated for each motor. The interface type 
 |-----------|----------|------|-------------|
 | `can_interface`         | true  | string  | Network interface to use e.g. "can0"    |
 | `simulate`              | false | boolean | For testing without a motor connected   |
-| `joint/gm6020_id`       | true  | integer | Which motor to use for this joint       |
+| `joint/motor_id`        | true  | integer | Which motor to use for this joint       |
 | `joint/motor_type`      | true  | string  | {"gm6020", "m3508", "m2006"}            |
-| `joint/position_offset` | false | double  | Offset the "zero" position of the motor |
+| `joint/position_offset` | false | double  | Set the "zero" position of the motor    |
 
-These parameters are set in [gm6020.ros2_control.xacro](gm6020_example/urdf/gm6020.ros2_control.xacro), not as regular ROS node parameters.
+These parameters are set in [rm_motors.ros2_control.xacro](rm_motors_example/urdf/rm_motors.ros2_control.xacro), not as regular ROS node parameters.
 
 For more information on ROS 2 Control hardware interfaces, check the [documentation](https://control.ros.org/rolling/doc/ros2_control/hardware_interface/doc/hardware_components_userdoc.html#) and [examples](https://github.com/ros-controls/ros2_control_demos).
 
 
-# gm6020_example
+# rm_motors_example
 
-This is a demonstration package which can drive gm6020 motors using a position trajectory controller or simple feed-forward controller.
+This is a demonstration package which drives a gm6020 motor using a position trajectory controller or simple feed-forward controller.
 
-Big thanks to the authors of [ros2_control_demos](https://github.com/ros-controls/ros2_control_demos) for providing helpful starter code.
+Thanks to the authors of [ros2_control_demos](https://github.com/ros-controls/ros2_control_demos) for helpful starter code.
 
 
 # Important Files
 
-### [gm6020_controllers.yaml](gm6020_example/config/gm6020_controllers.yaml)
+### [rm_motors_controllers.yaml](rm_motors_example/config/rm_motors_controllers.yaml)
 Controller details: joint names, command/state interfaces, PID gains.
 
-### [gm6020.launch.py](gm6020_example/launch/gm6020.launch.py)
+### [rm_motors.launch.py](rm_motors_example/launch/rm_motors.launch.py)
 Launch `controller_manager`, `robot_state_publisher`, `joint_state_broadcaster`, spawn the controllers, and (optionally) start RViz.
 
-### [gm6020_description.urdf.xacro](gm6020_example/urdf/gm6020_description.urdf.xacro)
+### [rm_motors_description.urdf.xacro](rm_motors_example/urdf/rm_motors_description.urdf.xacro)
 Physical configuration of the joints: pose, size, color, intertia, etc.
 
-### [gm6020.ros2_control.xacro](gm6020_example/urdf/gm6020.ros2_control.xacro)
+### [rm_motors.ros2_control.xacro](rm_motors_example/urdf/rm_motors.ros2_control.xacro)
 Hardware interface description: command/state interfaces, limits (currently non-functional), parameters.
 
 
 # Build System
 
-The `gm6020_can` Rust library is built in the `gm6020_ros` CMakeLists.txt. [Corrosion](https://corrosion-rs.github.io/corrosion/) compiles the crate and creates a library target for `target_link_library`. The build process may seem to stall at 0% but that is normal- the output from `cargo build` is buffered and only displayed when the build completes. TODO for unknown reasons the `gm6020_can` build takes a long time to complete.
+The `rm_motors_can` Rust library is built in the `rm_motors_ros` CMakeLists.txt. [Corrosion](https://corrosion-rs.github.io/corrosion/) compiles the crate and creates a library target for `target_link_library`. The build process may seem to stall at 0% but that is normal- the output from `cargo build` is buffered and only displayed when the build completes. TODO for unknown reasons the `rm_motors_can` build takes a long time to complete.
 
 
 # Hardware Setup
@@ -95,9 +95,9 @@ Beware that the motor reaches temperatures which can soften common 3d-printed ma
 
 
 # Software Setup
-Must have ROS 2 and Rust installed, with `gm6020_hw` and `gm6020_example` in a colcon workspace. Don't forget to install dependencies with rosdep, and `cargo install cargo-expand`. The [Docker image](#docker) will do all the setup for you.
+Must have ROS 2 and Rust installed, with `rm_motors_hw` and `rm_motors_example` in a colcon workspace. Don't forget to install dependencies with rosdep, and `cargo install cargo-expand`. The [Docker image](#docker) will do all the setup for you.
 
-The gm6020_can library has some [simple examples]([gm6020_hw/gm6020_can/README.md](https://github.com/mjforan/gm6020_can/blob/main/README.md#c-example) to try.
+The rm_motors_can library has some [simple examples]([rm_motors_hw/rm_motors_can/README.md](https://github.com/mjforan/rm_motors_can/blob/main/README.md#c-example) to try.
 
 
 # Full Stack Demo
@@ -109,7 +109,7 @@ The hardware interface uses the low-level library to communicate to the motor. T
 ```
 . install/setup.bash
 
-ros2 launch gm6020_example gm6020.launch.py &  # don't forget to kill this when you're done
+ros2 launch rm_motors_example rm_motors.launch.py &  # don't forget to kill this when you're done
 
 # For joint trajectory controller
 ros2 topic pub /joint_trajectory_position_controller/joint_trajectory trajectory_msgs/JointTrajectory "{joint_names: ["joint1"], points: [{positions:[0.0], velocities:[0.0], time_from_start: {sec: 3, nanosec: 0}}]}" -1
@@ -127,9 +127,9 @@ ros2 topic pub /forward_effort_controller/commands std_msgs/msg/Float64MultiArra
 A [Docker configuration](docker/Dockerfile) is provided for ease of setup and deployment. There is also a dev container configuration for use with Visual Studio Code.
 
 ```
-git clone https://github.com/mjforan/gm6020_ros.git
-cd gm6020_ros
+git clone https://github.com/mjforan/rm_motors_ros.git
+cd rm_motors_ros
 git submodule update --init
-docker build . -t mjforan/gm6020-ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
-docker run --rm -it --name gm6020_ros --network host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION mjforan/gm6020-ros
+docker build . -t mjforan/rm-motors-ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
+docker run --rm -it --name rm_motors_ros --network host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION mjforan/rm-motors-ros
 ```

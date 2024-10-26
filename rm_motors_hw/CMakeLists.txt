@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(gm6020_hw LANGUAGES CXX)
+project(rm_motors_hw LANGUAGES CXX)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -33,7 +33,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Corrosion)
 # Import targets defined in a package or workspace manifest `Cargo.toml` file
 # TODO set release depending on colcon settings
-corrosion_import_crate(MANIFEST_PATH gm6020_can/Cargo.toml PROFILE release)
+corrosion_import_crate(MANIFEST_PATH rm_motors_can/Cargo.toml PROFILE release)
 
 
 ## COMPILE
@@ -49,8 +49,8 @@ $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
 $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE gm6020_can/include)
-target_link_libraries(${PROJECT_NAME} PRIVATE gm6020_can_cpp)
+target_include_directories(${PROJECT_NAME} PRIVATE rm_motors_can/include)
+target_link_libraries(${PROJECT_NAME} PRIVATE rm_motors_can_cpp)
 
 
 ament_target_dependencies(

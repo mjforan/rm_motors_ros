@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 from glob import glob
 
-package_name = 'gm6020_example'
+package_name = 'rm_motors_example'
 
 setup(
     name=package_name,
@@ -18,7 +18,7 @@ setup(
     zip_safe=True,
     maintainer='mjforan',
     maintainer_email='matthewjforan@gmail.com',
-    description='Demonstrator package for gm6020_hw',
+    description='Demonstrator package for rm_motors_hw',
     license='MPL-2.0',
     tests_require=['pytest'],
     entry_points={

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7-labs
-# ^ this can be removed when the `COPY --exclude` syntax reaches stable
+# ^ this can be removed when the `COPY --parents` syntax reaches stable
 
 # Start from the ROS 2 base image
 ARG ROS_DISTRO=jazzy
@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND noninteractive
 SHELL ["/bin/bash", "-c"]
 WORKDIR /colcon_ws
 ENTRYPOINT ["/colcon_entrypoint.sh"]
-CMD ros2 launch gm6020_example gm6020.launch.py gui:=false
+CMD ros2 launch rm_motors_example rm_motors.launch.py gui:=false
 
 COPY ./docker/colcon-defaults.yaml /root/.colcon/defaults.yaml
 COPY ./docker/colcon_entrypoint.sh /colcon_entrypoint.sh
@@ -23,6 +23,7 @@ RUN apt update && apt upgrade -y && apt install -y \
 # Install Rust
 ENV PATH=/root/.cargo/bin:$PATH
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN cargo install cargo-expand
 
 # Copy ONLY the package.xml files but put them in the correct directory structure.
 # This allows us to install ROS dependencies separately and save time when rebuilding just the code.
@@ -31,12 +32,8 @@ RUN rosdep update --rosdistro ${ROS_DISTRO} && apt update && \
     rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
 RUN apt-get autoremove -y -qq && rm -rf /var/lib/apt/lists/*
 
-#COPY --parents ./gm6020_hw/gm6020_can/ /colcon_ws/src/
-#RUN cd src/gm6020_hw/gm6020_can && cargo install cargo-expand && cargo build --release --examples
-RUN cargo install cargo-expand
-
 # Copy the code and build
-COPY ./gm6020_hw ./src/gm6020_hw
-COPY ./gm6020_example ./src/gm6020_example
+COPY ./rm_motors_hw ./src/rm_motors_hw
+COPY ./rm_motors_example ./src/rm_motors_example
 RUN . /ros_entrypoint.sh && \
     colcon build
