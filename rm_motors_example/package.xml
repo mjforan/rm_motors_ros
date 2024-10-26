@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>gm6020_example</name>
+  <name>rm_motors_example</name>
   <version>0.0.0</version>
-  <description>Demo package to show usage of `gm6020_hw` ros2 hardware interface</description>
+  <description>Demo package to show usage of `rm_motors_hw` ros2 hardware interface</description>
 
   <maintainer email="matthewjforan@gmail.com">Matthew Foran</maintainer>
 
   <license>MPL-2.0</license>
 
-  <exec_depend>gm6020_hw</exec_depend>
+  <exec_depend>rm_motors_hw</exec_depend>
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>forward_command_controller</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>

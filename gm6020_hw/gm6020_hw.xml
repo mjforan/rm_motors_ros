@@ -1,9 +1,0 @@
-<library path="gm6020_hw">
-  <class name="gm6020_hw/Gm6020SystemHardware"
-         type="gm6020_hw::Gm6020SystemHardware"
-         base_class_type="hardware_interface::SystemInterface">
-    <description>
-      The ros2_control Gm6020 example using a system hardware interface-type.
-    </description>
-  </class>
-</library>

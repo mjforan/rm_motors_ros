@@ -1,0 +1,9 @@
+<library path="rm_motors_hw">
+  <class name="rm_motors_hw/RmMotorsSystemHardware"
+         type="rm_motors_hw::RmMotorsSystemHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      The ros2_control Rm_motors example using a system hardware interface-type.
+    </description>
+  </class>
+</library>

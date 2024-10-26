@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="gm6020" params="parent prefix *origin">
+  <xacro:macro name="rm_motors" params="parent prefix *origin">
 
   <!-- Constants for robot dimensions -->
   <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->

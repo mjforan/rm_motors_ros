@@ -17,18 +17,18 @@ def generate_launch_description():
         )
     )
     rviz = LaunchConfiguration("rviz")
-    rviz_config_file = PathJoinSubstitution([FindPackageShare("gm6020_example"), "config", "gm6020.rviz"])
+    rviz_config_file = PathJoinSubstitution([FindPackageShare("rm_motors_example"), "config", "rm_motors.rviz"])
 
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            PathJoinSubstitution([FindPackageShare("gm6020_example"), "urdf", "gm6020.urdf.xacro",]),
+            PathJoinSubstitution([FindPackageShare("rm_motors_example"), "urdf", "rm_motors.urdf.xacro",]),
         ]
     )
     robot_description = {"robot_description": robot_description_content}
 
-    robot_controllers = PathJoinSubstitution([FindPackageShare("gm6020_example"), "config", "gm6020_controllers.yaml",])
+    robot_controllers = PathJoinSubstitution([FindPackageShare("rm_motors_example"), "config", "rm_motors_controllers.yaml",])
 
     control_node = Node(
         package="controller_manager",

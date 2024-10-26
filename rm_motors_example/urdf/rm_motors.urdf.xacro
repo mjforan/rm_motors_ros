@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="rm_motors">
+  <xacro:arg name="prefix" default="" />
+
+  <!-- Import rm_motors macro -->
+  <xacro:include filename="$(find rm_motors_example)/urdf/rm_motors_description.urdf.xacro" />
+
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find rm_motors_example)/urdf/rm_motors.materials.xacro" />
+
+  <!-- Import rm_motors ros2_control description -->
+  <xacro:include filename="$(find rm_motors_example)/urdf/rm_motors.ros2_control.xacro" />
+
+  <!-- Used for fixing robot -->
+  <link name="world"/>
+
+  <xacro:rm_motors parent="world" prefix="$(arg prefix)">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:rm_motors>
+
+  <xacro:rm_motors_ros2_control name="rm_motors" prefix="$(arg prefix)" />
+
+</robot>

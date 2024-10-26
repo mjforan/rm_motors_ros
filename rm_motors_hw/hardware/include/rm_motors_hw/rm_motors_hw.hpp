@@ -1,20 +1,20 @@
-#ifndef GM6020_HW__GM6020_HPP_
-#define GM6020_HW__GM6020_HPP_
+#ifndef RM_MOTORS_HW__RM_MOTORS_HPP_
+#define RM_MOTORS_HW__RM_MOTORS_HPP_
 
 #include <vector>
 
-#include <gm6020_can.hpp>
+#include <rm_motors_can.hpp>
 
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
-namespace gm6020_hw
+namespace rm_motors_hw
 {
 
-class Gm6020SystemHardware : public hardware_interface::SystemInterface
+class RmMotorsSystemHardware : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(Gm6020SystemHardware)
+  RCLCPP_SHARED_PTR_DEFINITIONS(RmMotorsSystemHardware)
 
   hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
@@ -37,16 +37,16 @@ public:
 private:
   const char* can_interface_;
   bool simulate_;
-  gm6020_can::Gm6020Can *gmc_;
+  rm_motors_can::RmMotorsCan *gmc_;
   std::vector<const char*> state_interface_types_ = {hardware_interface::HW_IF_POSITION, hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT, "temperature"};
-  std::vector<gm6020_can::MotorType> motor_types_;
-  std::vector<gm6020_can::CmdMode> command_modes_;
+  std::vector<rm_motors_can::MotorType> motor_types_;
+  std::vector<rm_motors_can::CmdMode> command_modes_;
   std::vector<double> hw_commands_;
   std::vector<std::vector<double>> hw_states_;
   std::vector<uint> motor_ids_;
   std::vector<double> position_offsets_;
 };
 
-}  // namespace gm6020_hw
+}  // namespace rm_motors_hw
 
-#endif  // GM6020_HW__GM6020_HPP_
+#endif  // RM_MOTORS_HW__RM_MOTORS_HPP_
