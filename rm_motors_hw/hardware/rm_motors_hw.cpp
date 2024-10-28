@@ -238,9 +238,7 @@ hardware_interface::return_type RmMotorsSystemHardware::read(
     }
     else{
       hw_states_[i][0] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Position) - position_offsets_[i];
-      hw_states_[i][0] += 2.0*M_PI;
-      hw_states_[i][0] -= 2*M_PI*(int)(hw_states_[i][0]/(2*M_PI)); // account for position_offset shifting the output range
-      //hw_states_[i][0] += hw_states_[i][0] < 0.0 ? 2.0*M_PI : 0.0; // TODO what was wrong with this way?
+      hw_states_[i][0] += hw_states_[i][0] < 0.0 ? 2.0*M_PI : 0.0; // account for position_offset shifting the output range
       hw_states_[i][1] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Velocity);
       hw_states_[i][2] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Current)*rm_motors_can::nm_per_a(motor_types_[i]);
       hw_states_[i][3] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Temperature);
