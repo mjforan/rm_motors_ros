@@ -1,3 +1,5 @@
+[Quick Start](#quick-start)
+
 # rm_motors_hw
 
 This is a `ros2_control` hardware interface wrapping the [`rm_motors_can`](https://github.com/mjforan/rm_motors_can) library, used to control DJI RoboMaster motors over the CAN bus.
@@ -66,7 +68,7 @@ The `rm_motors_can` Rust library is built in the `rm_motors_ros` CMakeLists.txt.
 
 # Hardware Setup
 
-Out of the box the motor is configured with ID 0, which is invalid. Use the DIP switches to set the ID and enable the CAN termination resistor if necessary.
+Out of the box the motor is configured with ID 0, which is invalid. Beware that GM6020 ID 1-4 cannot coexist with M3508/M2006 ID 5-8 due to overlapping CAN Bus addresses. Use the DIP switches to set the ID and enable the CAN termination resistor if necessary.
 
 This library requires a Linux SocketCAN interface. It was tested using a Raspberry Pi 5 and the [Waveshare CAN HAT](https://www.waveshare.com/wiki/2-CH_CAN_HAT). Quick start setup:
 
@@ -127,9 +129,37 @@ ros2 topic pub /forward_effort_controller/commands std_msgs/msg/Float64MultiArra
 A [Docker configuration](docker/Dockerfile) is provided for ease of setup and deployment. There is also a dev container configuration for use with Visual Studio Code.
 
 ```
-git clone https://github.com/mjforan/rm_motors_ros.git
-cd rm_motors_ros
-git submodule update --init
 docker build . -t mjforan/rm-motors-ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
 docker run --rm -it --name rm_motors_ros --network host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION mjforan/rm-motors-ros
 ```
+
+
+# Quick Start
+
+Configure your hardware so a motor is available on a Linux CAN network interface. [Example Setup](#hardware-setup)
+
+```
+git clone https://github.com/mjforan/rm_motors_ros.git
+cd rm_motors_ros
+git submodule update --init
+```
+
+Edit parameters in [rm_motors.ros2_control.xacro](rm_motors_example/urdf/rm_motors.ros2_control.xacro)
+
+[Install Docker](https://docs.docker.com/engine/install/)
+
+```
+docker build . -t mjforan/rm-motors-ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
+docker run --rm -it --name rm_motors_ros --network host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION mjforan/rm-motors-ros
+```
+
+Open a new terminal or use `docker run -d ...` to put it in the background.
+
+```
+docker exec -it rm_motors_ros bash
+ros2 topic pub /joint_trajectory_position_controller/joint_trajectory trajectory_msgs/JointTrajectory "{joint_names: ["joint1"], points: [{positions:[0.0], velocities:[0.0], time_from_start: {sec: 3, nanosec: 0}}]}" -1
+```
+
+Change the position or add points to move the motor. Be cautious as the default PID values may not work for your system.
+
+Additional steps are necessary to make RViz visible from the container. I recommend Visual Studio Code with the Docker extension.
