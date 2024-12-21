@@ -78,9 +78,9 @@ hardware_interface::CallbackReturn RmMotorsSystemHardware::on_init(const hardwar
     }
     try{
       double pos_offset = stod(joint.parameters.at("position_offset"));
-      if (pos_offset < -2.0*M_PI || pos_offset > 2.0*M_PI){
+      if (pos_offset < -1.0*M_PI || pos_offset > M_PI){
         RCLCPP_FATAL(rclcpp::get_logger("RmMotorsSystemHardware"),
-          "Joint %s position_offset out of range [-2π, 2π]: %f", joint.name.c_str(), pos_offset);
+          "Joint %s position_offset out of range [-π, π]: %f", joint.name.c_str(), pos_offset);
         return hardware_interface::CallbackReturn::ERROR;
       }
       position_offsets_.emplace_back(pos_offset);
@@ -237,8 +237,10 @@ hardware_interface::return_type RmMotorsSystemHardware::read(
       hw_states_[i][0] = hw_states_[i][0] + hw_states_[i][1]*0.5;                          // position
     }
     else{
-      hw_states_[i][0] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Position) - position_offsets_[i];
-      hw_states_[i][0] += hw_states_[i][0] < 0.0 ? 2.0*M_PI : 0.0; // account for position_offset shifting the output range
+      // Apply position offset and convert from [0, 2pi] to [-pi, pi]
+      hw_states_[i][0] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Position) - position_offsets_[i] - M_PI;
+      hw_states_[i][0] += hw_states_[i][0] < -1.0*M_PI ? 2.0*M_PI : 0.0; // account for position_offset shifting the output range
+      hw_states_[i][0] -= hw_states_[i][0] >  1.0*M_PI ? 2.0*M_PI : 0.0;
       hw_states_[i][1] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Velocity);
       hw_states_[i][2] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Current)*rm_motors_can::nm_per_a(motor_types_[i]);
       hw_states_[i][3] = rm_motors_can::get_state(gmc_, motor_ids_[i], rm_motors_can::FbField::Temperature);
