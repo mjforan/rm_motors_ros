@@ -1,5 +1,5 @@
-#ifndef RM_MOTORS_HW__RM_MOTORS_HPP_
-#define RM_MOTORS_HW__RM_MOTORS_HPP_
+#ifndef RM_MOTORS_HW__RM_MOTORS_HW_HPP_
+#define RM_MOTORS_HW__RM_MOTORS_HW_HPP_
 
 #include <vector>
 
@@ -49,4 +49,4 @@ private:
 
 }  // namespace rm_motors_hw
 
-#endif  // RM_MOTORS_HW__RM_MOTORS_HPP_
+#endif  // RM_MOTORS_HW__RM_MOTORS_HW_HPP_
