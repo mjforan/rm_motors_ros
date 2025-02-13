@@ -1,24 +1,9 @@
 # syntax=docker/dockerfile:1.7-labs
 # ^ this can be removed when the `COPY --parents` syntax reaches stable
 
-# Start from the ROS 2 base image
+
 ARG ROS_DISTRO=jazzy
-FROM ros:${ROS_DISTRO}-ros-base
-
-# Set up some container details
-# Avoid waiting for user input when installing packages
-ENV DEBIAN_FRONTEND noninteractive
-SHELL ["/bin/bash", "-c"]
-WORKDIR /colcon_ws
-ENTRYPOINT ["/colcon_entrypoint.sh"]
-CMD ros2 launch rm_motors_example rm_motors.launch.py gui:=false
-
-COPY ./docker/colcon-defaults.yaml /root/.colcon/defaults.yaml
-COPY ./docker/colcon_entrypoint.sh /colcon_entrypoint.sh
-
-# Install system packages
-RUN apt update && apt upgrade -y && apt install -y \
-    nano curl ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
+FROM mjforan/ros-base:${ROS_DISTRO}
 
 # Install Rust
 ENV PATH=/root/.cargo/bin:$PATH

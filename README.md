@@ -126,11 +126,11 @@ ros2 topic pub /forward_effort_controller/commands std_msgs/msg/Float64MultiArra
 
 # Docker
 
-A [Docker configuration](docker/Dockerfile) is provided for ease of setup and deployment. There is also a dev container configuration for use with Visual Studio Code.
+A [Docker configuration](Dockerfile) is provided for ease of setup and deployment. There is also a dev container configuration for use with Visual Studio Code.
 
 ```
-docker build . -t mjforan/rm-motors-ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
-docker run --rm -it --name rm_motors_ros --network host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION mjforan/rm-motors-ros
+docker build . -t mjforan/rm-motors-ros:jazzy --build-arg ROS_DISTRO=jazzy
+docker run --rm -it --name rm_motors_ros --network host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION mjforan/rm-motors-ros:jazzy
 ```
 
 
@@ -149,7 +149,7 @@ Edit parameters in [rm_motors.ros2_control.xacro](rm_motors_example/urdf/rm_moto
 [Install Docker](https://docs.docker.com/engine/install/)
 
 ```
-docker build . -t mjforan/rm-motors-ros -f docker/Dockerfile --build-arg ROS_DISTRO=jazzy
+docker build . -t mjforan/rm-motors-ros -f Dockerfile --build-arg ROS_DISTRO=jazzy
 docker run --rm -it --name rm_motors_ros --network host -e ROS_DOMAIN_ID -e RMW_IMPLEMENTATION mjforan/rm-motors-ros
 ```
 
