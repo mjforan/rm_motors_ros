@@ -78,6 +78,8 @@ raspi-config # enable SPI
 cp 80-can.network /etc/systemd/network/80-can.network
 cp 80-can.link /etc/systemd/network/80-can.link
 systemctl enable systemd-networkd.service
+systemctl disable systemd-networkd-wait-online systemd-timesyncd
+apt install -y chrony
 
 echo """
 dtparam=spi=on
@@ -87,9 +89,11 @@ dtoverlay=spi-bcm2835-overlay
 """>> /boot/firmware/config.txt
 reboot now
 ```
-TODO `NetworkManager` is installed by default but it does not support SocketCAN interfaces and it should not coexist with `systemd-networkd`.
 
-For debugging, you may want to `sudo apt install -y can-utils`, which adds useful commands such as `candump` and `cansend`.
+`NetworkManager` is much easier to use than `systemd-networkd` but it does not support the configuration of SocketCAN interfaces. `systemd-networkd` should be used for this purpose
+but running both programs introduces complications. For example, `systemd-timesyncd` will not work because the primary network is running through `NetworkManager`. Install `chrony` instead.
+
+`sudo apt install -y can-utils` adds useful commands such as `candump` and `cansend`.
 
 Connect the red wire to the "H" pin on CAN0, with the black wire going to the "L" pin. If these are the only two hosts on the CAN bus, set the HAT jumper and motor DIP switch to enable the CAN termination resistors. Power the motor with 24VDC 4A.
 
