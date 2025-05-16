@@ -103,7 +103,7 @@ Beware that the motor reaches temperatures which can soften common 3d-printed ma
 # Software Setup
 Must have ROS 2 and Rust installed, with `rm_motors_hw` and `rm_motors_example` in a colcon workspace. Don't forget to install dependencies with rosdep, and `cargo install cargo-expand`. The [Docker image](#docker) will do all the setup for you.
 
-The rm_motors_can library has some [simple examples]([rm_motors_hw/rm_motors_can/README.md](https://github.com/mjforan/rm_motors_can/blob/main/README.md#c-example) to try.
+The rm_motors_can library has some [simple examples](https://github.com/mjforan/rm_motors_can/blob/main/README.md#c-example) to try.
 
 
 # Full Stack Demo
