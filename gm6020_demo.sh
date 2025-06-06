@@ -1,0 +1,2 @@
+#! /usr/bin/env bash
+sleep 30 && ros2 topic pub /joint_trajectory_position_controller/joint_trajectory trajectory_msgs/JointTrajectory "{joint_names: ["joint1"], points: [{positions:[0.0], velocities:[0.0], time_from_start: {sec: 0, nanosec: 0}}, {positions:[0.0], time_from_start: {sec: 10, nanosec: 0}}, {positions:[0.5], time_from_start: {sec: 10, nanosec: 500000000}}, {positions:[-0.5], time_from_start: {sec: 11, nanosec: 0}}, {positions:[0.0], velocities:[0.0], time_from_start: {sec: 11, nanosec: 500000000}}]}" -1
