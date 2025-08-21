@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <rm_motors_can.hpp>
+#include <rclcpp/macros.hpp>
 
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"

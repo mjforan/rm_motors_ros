@@ -35,7 +35,7 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[robot_controllers],
         remappings=[
-            ("controller_manager/robot_description", "robot_description"),
+            ("controller_manager/robot_description", "robot_description"), # Humble only, remove 2027-05
         ],
         output="both",
     )
@@ -43,8 +43,8 @@ def generate_launch_description():
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
-        output="both",
         parameters=[robot_description],
+        output="both",
     )
 
     joint_state_broadcaster_spawner = Node(
