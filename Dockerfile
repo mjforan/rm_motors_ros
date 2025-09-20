@@ -2,12 +2,12 @@
 # ^ this can be removed when the `COPY --parents` syntax reaches stable
 
 
-ARG ROS_DISTRO=jazzy
+ARG ROS_DISTRO=kilted
 FROM mjforan/ros-base:${ROS_DISTRO}
 
 # Install Rust
 ENV PATH=/root/.cargo/bin:$PATH
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN cargo install cargo-expand
 
 # Copy ONLY the package.xml files but put them in the correct directory structure.

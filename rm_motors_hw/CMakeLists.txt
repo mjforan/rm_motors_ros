@@ -52,10 +52,12 @@ $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 target_include_directories(${PROJECT_NAME} PRIVATE rm_motors_can/include)
 target_link_libraries(${PROJECT_NAME} PRIVATE rm_motors_can_cpp)
 
-
-ament_target_dependencies(
+target_link_libraries(
   ${PROJECT_NAME} PUBLIC
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+  hardware_interface::hardware_interface
+  pluginlib::pluginlib
+  rclcpp::rclcpp
+  rclcpp_lifecycle::rclcpp_lifecycle
 )
 
 # Export hardware plugins
